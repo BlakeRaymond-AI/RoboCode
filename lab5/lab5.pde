@@ -3,15 +3,15 @@ class TapeFollower
 public:
 	static void adjustProportionalCoeff(int knobReturn)
 	{
-		proportionalCoeff = (knobReturn / 1023) * maxProportionalCoeff;
+		proportionalCoeff = map(knobReturn, 0, 1023, 0, maxProportionalCoeff);
 	}
 	static void adjustDerivativeCoeff(int knobReturn)
 	{
-		derivativeCoeff = (knobReturn / 1023) * maxDerivativeCoeff;
+		derivativeCoeff = map(knobReturn, 0, 1023, 0, maxDerivativeCoeff);
 	}
 	static void adjustIntegralCoeff(int knobReturn)
 	{
-		integralCoeff = (knobReturn / 1023) * maxIntegralCoeff;
+		integralCoeff = map(knobReturn, 0, 1023, 0, maxIntegralCoeff);
 	}
 
 	static float derivativeCoeff;

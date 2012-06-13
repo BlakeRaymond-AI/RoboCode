@@ -14,7 +14,7 @@ class TapeFollower
 public:
         TapeFollower()
           :maxProportionalCoeff(500),
-  	  maxDerivativeCoeff(100),
+  		maxDerivativeCoeff(100),
   	  maxIntegralCoeff(10),
           derivativeCoeff(1.0),
           proportionalCoeff(1.0),

@@ -3,8 +3,14 @@
 #include <Servo253.h>      //   ***** from 253 template file 
 #include <TimedAction.h>
 
-enum MOTORS { LEFT_DRIVE_MOTOR = 1, RIGHT_DRIVE_MOTOR = 2 };
+enum MOTORS { LEFT_DRIVE_MOTOR = 0, RIGHT_DRIVE_MOTOR = 1 };
 enum ANALOG_INPUTS { LEFT_TAPE_QRD = 5, RIGHT_TAPE_QRD = 4 };
+
+const int initialSpeed = 500;
+const int initialQRDThreshold = 100;
+const int initialProportionalGain = 150;
+const int initialDerivGain = 100;
+const int intialLRBalance = 512;
 
 class Menu
 {
@@ -15,12 +21,14 @@ class Menu
     names.addElement("Deriv: ");
     names.addElement("Speed: ");
     names.addElement("QRD: ");
-   
-    values.addElement(0);
-    values.addElement(0);
-    values.addElement(0);
-    values.addElement(0);
-  }
+    names.addElement("L/R Balance: ");   
+    
+    values.addElement(initialProportionalGain);
+    values.addElement(initialDerivGain);
+    values.addElement(initialSpeed);
+    values.addElement(initialQRDThreshold);
+    values.addElement(intialLRBalance);  
+}
   
   void open()
   {
@@ -32,6 +40,7 @@ class Menu
     {
       getItem();
       display();
+      delay(50);
       //Press start to set the value
       if(readStart())
       {
@@ -48,7 +57,7 @@ class Menu
   //Scroll through the menu using one of the knobs  
   void getItem()
   {
-    index = knob(6) / 1023.0 * names.size(); 
+    index = knob(6) / 1023.0 * (names.size()); 
   }
   
   void display()
@@ -61,7 +70,7 @@ class Menu
   
   void set(int value)
   {
-    values.setElementAt(index, value);
+    values.setElementAt(value, index);
   }
 
   Vector<char*> names;  
@@ -75,25 +84,26 @@ class TapeFollower
 {
   public:
     TapeFollower()
-    : kP(50),
-      kD(10),
-      speed(250),
+    : kP(initialProportionalGain),
+      kD(initialDerivGain),
+      speed(initialSpeed),
       time(0),
       lastTime(0),
       error(0),
       lastError(0),
-      qrdThreshold(100),
+      qrdThreshold(initialQRDThreshold),
       leftMotorSpeed(0),
       rightMotorSpeed(0),
-      displayAction(100, NULL)
+      displayAction(100, NULL),
+      LRBalance(intialLRBalance)
     {
-      
+    
     }
     
     void followTape()
     {
-      int leftQRD = analogRead(LEFT_TAPE_QRD);
-      int rightQRD = analogRead(RIGHT_TAPE_QRD);
+      leftQRD = analogRead(LEFT_TAPE_QRD);
+      rightQRD = analogRead(RIGHT_TAPE_QRD);
      
       //Proportional control
       int error = 0;    
@@ -117,10 +127,10 @@ class TapeFollower
       
       int correction = proportional + derivative;
       
-      leftMotorSpeed = speed-correction;
-      rightMotorSpeed = speed+correction;
+      leftMotorSpeed = speed+correction;
+      rightMotorSpeed = speed-correction;
   
-      motor.speed(LEFT_DRIVE_MOTOR, leftMotorSpeed);
+      motor.speed(LEFT_DRIVE_MOTOR, leftMotorSpeed * (LRBalance/512.0));
       motor.speed(RIGHT_DRIVE_MOTOR, rightMotorSpeed);
       lastError = error;
       ++time;
@@ -132,15 +142,18 @@ class TapeFollower
     {
       LCD.clear();
       LCD.home();
-      LCD.print("Left: " + String(leftMotorSpeed));
+      LCD.print("L:" + String(leftMotorSpeed) + " ");
+      LCD.print("R:" + String(rightMotorSpeed));
       LCD.setCursor(0,1);
-      LCD.print("Right: " + String(rightMotorSpeed));
+      LCD.print("L:" + String(leftQRD) + " ");
+      LCD.print("R:" + String(rightQRD));
     }
     
     int kP;
     int kD;
     int speed;
     int qrdThreshold;
+    int LRBalance;
     
     TimedAction displayAction;
     
@@ -151,7 +164,9 @@ class TapeFollower
     int lastError;
     int leftMotorSpeed;
     int rightMotorSpeed;
-};
+    int leftQRD;
+    int rightQRD;
+  };
 
 TapeFollower TAPEFOLLOWER;
 
@@ -202,12 +217,14 @@ void refresh()
 {
   if(readStart())
   {
+    while(readStart()); //Wait for the start button to stop being pressed
     MENU.open();
     
-    TAPEFOLLOWER.kP = remapKnob(MENU.values.elementAt(0), 0, 300);
-    TAPEFOLLOWER.kD = remapKnob(MENU.values.elementAt(1), 0, 300);
+    TAPEFOLLOWER.kP = MENU.values.elementAt(0) / 1023.0 * 300;
+    TAPEFOLLOWER.kD = MENU.values.elementAt(1) / 1023.0 * 300;
     TAPEFOLLOWER.speed = MENU.values.elementAt(2);
     TAPEFOLLOWER.qrdThreshold = MENU.values.elementAt(3);
+    TAPEFOLLOWER.LRBalance = MENU.values.elementAt(4);
   }
 }
 TimedAction refreshAction = TimedAction(100, refresh);

@@ -1,16 +1,30 @@
 #include <phys253.h>       //   ***** from 253 template file
 #include <LiquidCrystal.h> //   ***** from 253 template file
 #include <Servo253.h>      //   ***** from 253 template file 
-#include <TimedAction.h>
 
 enum MOTORS { LEFT_DRIVE_MOTOR = 0, RIGHT_DRIVE_MOTOR = 1 };
 enum ANALOG_INPUTS { LEFT_TAPE_QRD = 5, RIGHT_TAPE_QRD = 4 };
 
-const int initialSpeed = 500;
-const int initialQRDThreshold = 100;
-const int initialProportionalGain = 150;
-const int initialDerivGain = 100;
+const int initialSpeed = 400;
+const int initialQRDThresholdL = 200;
+const int initialQRDThresholdR = 200;
+const int initialProportionalGain = 480;
+const int initialDerivGain = 230;
 const int intialLRBalance = 512;
+
+int analogAverage(int pin)
+{
+  int total=0;
+  int count=0;
+  
+  while(count < 5)
+  {
+    total += analogRead(pin);
+    ++count;
+  }
+  
+  return total/count;
+}
 
 class Menu
 {
@@ -20,13 +34,15 @@ class Menu
     names.addElement("Prop: ");
     names.addElement("Deriv: ");
     names.addElement("Speed: ");
-    names.addElement("QRD: ");
+    names.addElement("QRDL: ");
+    names.addElement("QRDR: ");
     names.addElement("L/R Balance: ");   
     
     values.addElement(initialProportionalGain);
     values.addElement(initialDerivGain);
     values.addElement(initialSpeed);
-    values.addElement(initialQRDThreshold);
+    values.addElement(initialQRDThresholdL);
+    values.addElement(initialQRDThresholdR);
     values.addElement(intialLRBalance);  
 }
   
@@ -91,26 +107,27 @@ class TapeFollower
       lastTime(0),
       error(0),
       lastError(0),
-      qrdThreshold(initialQRDThreshold),
+      qrdThresholdL(initialQRDThresholdL),
+      qrdThresholdR(initialQRDThresholdR),
       leftMotorSpeed(0),
       rightMotorSpeed(0),
-      displayAction(100, NULL),
-      LRBalance(intialLRBalance)
+      LRBalance(intialLRBalance),
+      count(0)
     {
     
     }
     
     void followTape()
     {
-      leftQRD = analogRead(LEFT_TAPE_QRD);
-      rightQRD = analogRead(RIGHT_TAPE_QRD);
+      leftQRD = analogAverage(LEFT_TAPE_QRD);
+      rightQRD = analogAverage(RIGHT_TAPE_QRD);
      
       //Proportional control
       int error = 0;    
-      if(leftQRD>qrdThreshold && rightQRD>qrdThreshold) error = 0;
-      if(leftQRD>qrdThreshold && rightQRD<qrdThreshold) error = -1;
-      if(leftQRD<qrdThreshold && rightQRD>qrdThreshold) error = 1;
-      if(leftQRD<qrdThreshold && rightQRD<qrdThreshold)
+      if(leftQRD>qrdThresholdL && rightQRD>qrdThresholdR) error = 0;
+      if(leftQRD>qrdThresholdL && rightQRD<qrdThresholdR) error = -1;
+      if(leftQRD<qrdThresholdL && rightQRD>qrdThresholdR) error = 1;
+      if(leftQRD<qrdThresholdL && rightQRD<qrdThresholdR)
       {
         if(lastError>0) error = 3;
         else error = -3;
@@ -134,8 +151,14 @@ class TapeFollower
       motor.speed(RIGHT_DRIVE_MOTOR, rightMotorSpeed);
       lastError = error;
       ++time;
+      ++count;
       
-      displayAction.check();
+      if(count == 100)
+      {
+        display();
+        count = 0;
+      }
+      
     }
     
     void display()
@@ -152,10 +175,9 @@ class TapeFollower
     int kP;
     int kD;
     int speed;
-    int qrdThreshold;
+    int qrdThresholdL;
+    int qrdThresholdR;
     int LRBalance;
-    
-    TimedAction displayAction;
     
   private:
     int time;
@@ -166,6 +188,7 @@ class TapeFollower
     int rightMotorSpeed;
     int leftQRD;
     int rightQRD;
+    int count;
   };
 
 TapeFollower TAPEFOLLOWER;
@@ -223,21 +246,32 @@ void refresh()
     TAPEFOLLOWER.kP = MENU.values.elementAt(0) / 1023.0 * 300;
     TAPEFOLLOWER.kD = MENU.values.elementAt(1) / 1023.0 * 300;
     TAPEFOLLOWER.speed = MENU.values.elementAt(2);
-    TAPEFOLLOWER.qrdThreshold = MENU.values.elementAt(3);
-    TAPEFOLLOWER.LRBalance = MENU.values.elementAt(4);
+    TAPEFOLLOWER.qrdThresholdL = MENU.values.elementAt(3);
+    TAPEFOLLOWER.qrdThresholdR = MENU.values.elementAt(4);
+    TAPEFOLLOWER.LRBalance = MENU.values.elementAt(5);
   }
 }
-TimedAction refreshAction = TimedAction(100, refresh);
 
 void setup()
 {
-  //Display the motor speeds every 100 milliseconds
-  TAPEFOLLOWER.displayAction = TimedAction(100, tapeFollowerDisplay);
+
 }
 
 void loop()
 {
-  refreshAction.check();
-  TAPEFOLLOWER.followTape();
+  int i=0;
+  
+  while(1)
+  {
+    ++i;
+    TAPEFOLLOWER.followTape();
+    
+    if(i == 100)
+    {
+      refresh();
+      tapeFollowerDisplay();
+      i=0;
+    }
+  }
 }
 

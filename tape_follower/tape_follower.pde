@@ -2,6 +2,9 @@
 #include <LiquidCrystal.h> //   ***** from 253 template file
 #include <Servo253.h>      //   ***** from 253 template file 
 
+#include <FiniteStateMachine.h>
+#include <Supervisor.h>
+
 enum MOTORS { LEFT_DRIVE_MOTOR = 0, RIGHT_DRIVE_MOTOR = 1 };
 enum ANALOG_INPUTS { LEFT_TAPE_QRD = 5, RIGHT_TAPE_QRD = 4 };
 

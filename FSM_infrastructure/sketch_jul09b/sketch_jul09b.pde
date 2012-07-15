@@ -46,34 +46,9 @@ void setup()
 
 void loop() 
 {
-	switch(nextState)
-	{
-		case TRAVEL_TO_DEPOT: 
-			robotStateMachine.transitionTo(TravelToDepot);
-			break;
-		case TRAVEL_FROM_DEPOT:
-			robotStateMachine.transitionTo(TravelFromDepot);
-			break;			
-		case DETECT_BLOCK_IN_DEPOT:
-			robotStateMachine.transitionTo(DetectBlockInDepot);
-			break;
-		case DETECT_BLOCK_IN_BUILD_AREA:
-			robotStateMachine.transitionTo(DetectBlockInBuildArea);
-			break;
-		case PLACE_BLOCK_ON_GROUND:
-			robotStateMachine.transitionTo(PlaceBlockOnGround);
-			break;
-		case STACK_BLOCKS:
-			robotStateMachine.transitionTo(StackBlocks);
-			break;
-		case PICK_UP_BLOCK:
-			robotStateMachine.transitionTo(PickUpBlock);
-			break;
-		default:
-			break;
-	}
 	operationComplete = false;
-        robotStateMachine.update();
+    robotStateMachine.update();
+	Supervisor.checkRules();
 }
 
 

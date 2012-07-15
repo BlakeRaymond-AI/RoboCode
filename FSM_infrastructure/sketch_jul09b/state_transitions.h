@@ -29,7 +29,7 @@ void travelToDepot()
 	}
 	else //Successfully reached depot
 	{
-		nextState = DETECT_BLOCK_IN_DEPOT; //TODO consider a state change immediately here if circular references can be avoided
+		robotStateMachine.transitionTo(DetectBlockInDepot); //TODO consider a state change immediately here if circular references can be avoided
 	}	
 }
 

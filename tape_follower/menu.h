@@ -3,24 +3,26 @@
 
 #include <io_helper_functions.h>
 
+struct MenuItem
+{
+	MenuItem(char* displayText, int* valuePtr)
+	:displayText(displayText),
+	valuePtr(valuePtr)
+	{}
+	
+	char* displayText;
+	int* valuePtr;
+};
+
 class Menu
 {
 public:
   Menu()
   {
-    names.addElement("Prop: ");
-    names.addElement("Deriv: ");
-    names.addElement("Speed: ");
-    names.addElement("QRDL: ");
-    names.addElement("QRDR: ");
-    names.addElement("L/R Balance: ");   
-
-    values.addElement(initialProportionalGain);
-    values.addElement(initialDerivGain);
-    values.addElement(initialSpeed);
-    values.addElement(initialQRDThresholdL);
-    values.addElement(initialQRDThresholdR);
-    values.addElement(intialLRBalance);
+    items.addElement(MenuItem("Prop: ", &TAPEFOLLOWER.kP));
+	items.addElement(MenuItem("Deriv: ", &TAPEFOLLOWER.kD));
+	items.addElement(MenuItem("Speed: ", &TAPEFOLLOWER.baseSpeed));
+	items.addElement(MenuItem("QRD: ", &TAPEFOLLOWER.QRDThreshold));
   }
 
   void open()
@@ -50,24 +52,23 @@ public:
   //Scroll through the menu using one of the knobs  
   void getItem()
   {
-    index = knob(6) / 1023.0 * (names.size());
+    index = knob(6) / 1023.0 * (items.size());
   }
 
   void display()
   {
     LCD.clear();
     LCD.home();
-    LCD.print(names.elementAt(index));
+    LCD.print(items.elementAt(index).displayText);
     LCD.print(knob(5));
   }  
 
   void set(int value)
   {
-    values.setElementAt(value, index);
+    &items.elementAt(index).valuePtr = value;
   }
 
-  Vector<char*> names;  
-  Vector<int> values;
+  Vector<MenuItem> items;
   int index;
 };
 

@@ -1,3 +1,6 @@
+#ifndef STATE_HISTORY_HEADER_GUARD
+#define STATE_HISTORY_HEADER_GUARD
+
 class StateHistory
 {
 	public:
@@ -21,3 +24,5 @@ class StateHistory
 };
 
 StateHistory STATE_HISTORY;
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef SIGNAL_HEADER_GUARD
+#define SIGNAL_HEADER_GUARD
+
 struct Signal
 {
 	Signal(int threshold, int pin)
@@ -29,3 +32,5 @@ struct Signal
 	int threshold;
 	int pin;
 };
+
+#endif

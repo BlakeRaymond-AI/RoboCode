@@ -1,9 +1,10 @@
-#ifndef TAPE_FOLLOWER
-#define TAPE_FOLLOWER
+#ifndef TAPE_FOLLOWER_HEADER_GUARD
+#define TAPE_FOLLOWER_HEADER_GUARD
 
 #include <io_helper_functions.h>
 
-enum INITIAL_TAPEFOLLOWING_CONSTANTS {
+enum INITIAL_TAPEFOLLOWING_CONSTANTS 
+{
   initialSpeed = 400,
   initialQRDThreshold = 200
   initialProportionalGain = 480,
@@ -25,19 +26,55 @@ public:
     kP(initialProportionalGain),
     kD(initialDerivGain),
     baseSpeed(initialSpeed),
+	leftQRD(LEFT_TAPE_QRD, initialQRDThreshold),
+	rightQRD(RIGHT_TAPE_QRD, initialQRDThreshold),
+	leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThreshold),
+	rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThreshold),
     time(0),
     lastTime(0),
     error(0),
     lastError(0),
     count(0),
-	leftQRD(LEFT_TAPE_QRD, initialQRDThreshold),
-	rightQRD(RIGHT_TAPE_QRD, initialQRDThreshold),
-	leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThreshold),
-	rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThreshold),
 	turnBias(NONE)
     {
 		
     }
+	
+	void stop()
+	{
+		motors.speed(LEFT_DRIVE_MOTOR,0);
+		motors.speed(RIGHT_DRIVE_MOTOR,0);
+	}
+	
+	void backUp()
+	{
+		motors.speed(LEFT_DRIVE_MOTOR,-baseSpeed);
+		motors.speed(RIGHT_DRIVE_MOTOR, -baseSpeed);
+		delay(1000);
+		stop();
+	}
+	
+	void turnAround()
+	{
+		while(leftOutboardQRD.aboveThreshold()) //Turn left until the left outboard QRD hits tape
+		{
+			motors.speed(LEFT_DRIVE_MOTOR, -baseSpeed);
+			motors.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
+			leftOutboardQRD.read();
+		}
+		while(leftQRD.aboveThreshold()) //Turn left slower until the left QRD hits tape
+		{
+			motors.speed(LEFT_DRIVE_MOTOR, -0.5*baseSpeed);
+			motors.speed(RIGHT_DRIVE_MOTOR, 0.5*baseSpeed);
+			leftQRD.read();
+		}
+		while(leftQRD.belowThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
+		{
+			motors.speed(LEFT_DRIVE_MOTOR, -0.1*baseSpeed);
+			motors.speed(RIGHT_DRIVE_MOTOR, 0.1*baseSpeed);
+			leftQRD.read();
+		}
+	}
 	
 	void enable() //Enable tape following by adding the sensors to the observer
 	{
@@ -49,8 +86,7 @@ public:
 	
 	void disable() //Disable tape following by removing the sensors from the observer
 	{
-		motors.speed(LEFT_DRIVE_MOTOR, 0);
-		motors.speed(RIGHT_DRIVE_MOTOR, 0);
+		stop();
 		OBSERVER.removeSignal(&leftQRD);
 		OBSERVER.removeSignal(&rightQRD);
 		OBSERVER.removeSignal(&leftOutboardQRD);
@@ -105,8 +141,7 @@ public:
 	
 	void errorTapeLost()
 	{
-		STATE_HISTORY.addElement(robotStateMachine.getCurrentState());
-		robotStateMachine.transitionTo(ERROR_HANDLING_TAPE_LOST);
+		robotStateMachine.transitionTo(Error_TapeLost);
 	}
 
   void followTape()
@@ -172,6 +207,15 @@ public:
     LCD.print("R:" + String(rightQRD));
   }
 
+private:
+  int time;
+  int lastTime;
+  int error;
+  int lastError;
+  int count;
+  TurningBias turnBias;
+  
+  int QRDThreshold;
   int kP;
   int kD;
   int baseSpeed;
@@ -181,21 +225,10 @@ public:
   Signal leftOutboardQRD;
   Signal rightOutboardQRD;
   
-private:
-  int time;
-  int lastTime;
-  int error;
-  int lastError;
-  int count;
-  TurningBias turnBias;
+  friend class Menu;
 };
 
 TapeFollower TAPEFOLLOWER;
-
-void tapeFollowerDisplay()
-{
-  TAPEFOLLOWER.display();
-}
 
 #endif
 

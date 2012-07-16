@@ -1,3 +1,6 @@
+#ifndef OBSERVER_HEADER_GUARD
+#define OBSERVER_HEADER_GUARD
+
 class Observer
 {
 	public:
@@ -36,3 +39,5 @@ class Observer
 };
 
 Observer OBSERVER;
+
+#endif

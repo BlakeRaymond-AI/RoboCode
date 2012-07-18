@@ -1,28 +1,22 @@
 #ifndef STATE_HISTORY_HEADER_GUARD
 #define STATE_HISTORY_HEADER_GUARD
 
+#include <FiniteStateMachine.h>
+
 class StateHistory
 {
 	public:
-		StateHistory() {}
-		
-		void record()
-		{
-			if(robotStateMachine.isInState(history.get(history.size()-1)))
-				return;
-			history.addElement(robotStateMachine.getCurrentState());
-		}
-		
-		void rollback()
-		{
-			history.removeElementAt(history.size()-1);
-			robotStateMachine.transitionTo(history.get(history.size()-1));
-		}
+		StateHistory(FSM &stateMachine)
+                :stateMachine(stateMachine)
+                {}		
+		void record();		
+		void rollback();
 		
 	private:
-		Vector<State> history;
+		Vector<State*> history;
+                FSM&  stateMachine;
 };
 
-StateHistory STATE_HISTORY;
+extern StateHistory STATE_HISTORY;
 
 #endif

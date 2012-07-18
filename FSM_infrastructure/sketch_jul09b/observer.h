@@ -1,6 +1,8 @@
 #ifndef OBSERVER_HEADER_GUARD
 #define OBSERVER_HEADER_GUARD
 
+#include <signal.h>
+
 class Observer
 {
 	public:
@@ -38,6 +40,6 @@ class Observer
 	Vector<Signal*> signalList;
 };
 
-Observer OBSERVER;
+extern Observer OBSERVER;
 
 #endif

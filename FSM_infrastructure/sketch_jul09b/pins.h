@@ -15,4 +15,9 @@ enum MOTORS
 	RIGHT_DRIVE_MOTOR = 1
 };
 
+enum DIGITAL_IN
+{
+        BUMPER = 0
+};
+
 #endif

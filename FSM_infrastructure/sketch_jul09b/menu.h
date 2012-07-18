@@ -2,6 +2,7 @@
 #define MENU_HEADER_GUARD
 
 #include <io_helper_functions.h>
+#include <tape_follower.h>
 
 struct MenuItem
 {
@@ -9,6 +10,30 @@ struct MenuItem
 	:displayText(displayText),
 	valuePtr(valuePtr)
 	{}
+
+        MenuItem()
+        :displayText(""),
+        valuePtr(NULL)
+        {}
+        
+        const MenuItem& operator=(const MenuItem& rhs)
+        {
+          displayText = rhs.displayText;
+          valuePtr = rhs.valuePtr;
+          return rhs;
+        }
+        
+        int operator=(int rhs)
+        {
+          displayText = "";
+          valuePtr = NULL;
+          return rhs;
+        }
+
+        char* getDisplayText() const
+        { 
+          return displayText;
+        }
 	
 	char* displayText;
 	int* valuePtr;
@@ -17,13 +42,7 @@ struct MenuItem
 class Menu
 {
 public:
-  Menu()
-  {
-    items.addElement(MenuItem("Prop: ", &TAPEFOLLOWER.kP));
-	items.addElement(MenuItem("Deriv: ", &TAPEFOLLOWER.kD));
-	items.addElement(MenuItem("Speed: ", &TAPEFOLLOWER.baseSpeed));
-	items.addElement(MenuItem("QRD: ", &TAPEFOLLOWER.QRDThreshold));
-  }
+  Menu(TapeFollower &tapeFollower);
 
   void open()
   {
@@ -59,19 +78,19 @@ public:
   {
     LCD.clear();
     LCD.home();
-    LCD.print(items.elementAt(index).displayText);
+    //LCD.print(items.elementAt(index).displayText);
     LCD.print(knob(5));
   }  
 
   void set(int value)
   {
-    &items.elementAt(index).valuePtr = value;
+    *(items.elementAt(index).valuePtr) = value;
   }
 
   Vector<MenuItem> items;
   int index;
 };
 
-Menu MENU;
+extern Menu MENU;
 
 #endif

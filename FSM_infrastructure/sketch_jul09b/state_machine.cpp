@@ -1,4 +1,13 @@
+#include "WProgram.h"
 #include <state_machine.h>
+
+State TravelToDepot 			= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
+State TravelFromDepot			= State(travelFromDepot_Enter, travelFromDepot_Update, travelFromDepot_Exit);
+State Error_TapeLost			= State(errorHandling_TapeLost_Enter, errorHandling_TapeLost_Update, errorHandling_TapeLost_Exit);
+State Idle						= State(idle_Update);
+
+FSM robotStateMachine(TravelToDepot);
+StateHistory STATE_HISTORY(robotStateMachine);
 
 void travelToDepot_Enter()
 {
@@ -14,7 +23,10 @@ void travelToDepot_Update()
 {
 	if(!digitalRead(BUMPER))
 	{
-		TAPEFOLLOWER.followTapeRightBiased();
+		if(TAPEFOLLOWER.followTapeRightBiased())
+                  return;
+                else 
+                  robotStateMachine.transitionTo(Error_TapeLost);
 	}
 	else
 	{
@@ -39,7 +51,10 @@ void travelFromDepot_Update()
 {
 	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold() && TAPEFOLLOWER.rightOutboardQRD.aboveThreshold()) //Go until both sensors hit tape
 	{
-		TAPEFOLLOWER.followTapeLeftBiased();
+		if(TAPEFOLLOWER.followTapeLeftBiased())
+                  return;
+                else
+                  robotStateMachine.transitionTo(Error_TapeLost);
 	}
 	else //Stop
 	{
@@ -48,7 +63,7 @@ void travelFromDepot_Update()
 	}
 }
 
-void errorHandling_TapeLost()
+void errorHandling_TapeLost_Enter()
 {
 	//TODO
 	TAPEFOLLOWER.stop();
@@ -64,6 +79,14 @@ void errorHandling_TapeLost()
 		delay(100);
 	}	
 	STATE_HISTORY.rollback();
+}
+
+void errorHandling_TapeLost_Exit()
+{
+}
+
+void errorHandling_TapeLost_Update()
+{
 }
 
 void idle_Update()
@@ -87,7 +110,7 @@ void idle_Update()
 		delay(500);
 	}
 	
-	if(startButton())
+	if(readStart())
 	{
 		robotStateMachine.transitionTo(TravelToDepot);
 	}

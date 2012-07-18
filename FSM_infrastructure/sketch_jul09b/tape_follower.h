@@ -1,17 +1,22 @@
 #ifndef TAPE_FOLLOWER_HEADER_GUARD
 #define TAPE_FOLLOWER_HEADER_GUARD
 
+#include <FiniteStateMachine.h>
 #include <io_helper_functions.h>
+#include <signal.h>
+#include <observer.h>
+#include <pins.h>
 
-enum INITIAL_TAPEFOLLOWING_CONSTANTS 
+enum TAPEFOLLOWING_CONSTANTS 
 {
-  initialSpeed = 400,
-  initialQRDThreshold = 200
-  initialProportionalGain = 480,
-  initialDerivGain = 230
+  initialSpeed = 225,
+  initialQRDThreshold = 450,
+  initialProportionalGain = 175,
+  initialDerivGain = 175,
+  SHARP_TURN_SPEED = 250
 };
 
-enum TurningBias
+enum TurningBias 
 {
 	LEFT,
 	RIGHT,
@@ -22,8 +27,7 @@ class TapeFollower
 {
 public:
   TapeFollower()
-  : 
-    kP(initialProportionalGain),
+  : kP(initialProportionalGain),
     kD(initialDerivGain),
     baseSpeed(initialSpeed),
 	leftQRD(LEFT_TAPE_QRD, initialQRDThreshold),
@@ -35,43 +39,45 @@ public:
     error(0),
     lastError(0),
     count(0),
-	turnBias(NONE)
+    turnBias(NONE),
+    leftMotorSpeed(0),
+    rightMotorSpeed(0)
     {
 		
     }
 	
 	void stop()
 	{
-		motors.speed(LEFT_DRIVE_MOTOR,0);
-		motors.speed(RIGHT_DRIVE_MOTOR,0);
+		motor.speed(LEFT_DRIVE_MOTOR,0);
+		motor.speed(RIGHT_DRIVE_MOTOR,0);
 	}
 	
 	void backUp()
 	{
-		motors.speed(LEFT_DRIVE_MOTOR,-baseSpeed);
-		motors.speed(RIGHT_DRIVE_MOTOR, -baseSpeed);
+		motor.speed(LEFT_DRIVE_MOTOR,-baseSpeed);
+		motor.speed(RIGHT_DRIVE_MOTOR, -baseSpeed);
 		delay(1000);
 		stop();
 	}
 	
 	void turnAround()
 	{
-		while(leftOutboardQRD.aboveThreshold()) //Turn left until the left outboard QRD hits tape
+		while(leftOutboardQRD.belowThreshold()) //Turn left until the left outboard QRD hits tape
 		{
-			motors.speed(LEFT_DRIVE_MOTOR, -baseSpeed);
-			motors.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
+			motor.speed(LEFT_DRIVE_MOTOR, -baseSpeed);
+			motor.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
 			leftOutboardQRD.read();
 		}
-		while(leftQRD.aboveThreshold()) //Turn left slower until the left QRD hits tape
+		while(leftQRD.belowThreshold()) //Turn left slower until the left QRD hits tape
 		{
-			motors.speed(LEFT_DRIVE_MOTOR, -0.5*baseSpeed);
-			motors.speed(RIGHT_DRIVE_MOTOR, 0.5*baseSpeed);
+			motor.speed(LEFT_DRIVE_MOTOR, -0.5*baseSpeed);
+			motor.speed(RIGHT_DRIVE_MOTOR, 0.5*baseSpeed);
 			leftQRD.read();
 		}
-		while(leftQRD.belowThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
+		while(leftQRD.aboveThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
 		{
-			motors.speed(LEFT_DRIVE_MOTOR, -0.1*baseSpeed);
-			motors.speed(RIGHT_DRIVE_MOTOR, 0.1*baseSpeed);
+			motor.speed(LEFT_DRIVE_MOTOR, -0.1*baseSpeed);
+			motor.speed(RIGHT_DRIVE_MOTOR, 0.1*baseSpeed);
 			leftQRD.read();
 		}
 	}
@@ -93,35 +99,35 @@ public:
 		OBSERVER.removeSignal(&rightOutboardQRD);
 	}
 	
-	void followTapeRightBiased()
+	boolean followTapeRightBiased()
 	{
-		if(rightOutboardQRD.belowThreshold()) //Outboard has crossed tape; next time both sensors are off, make a hard right
+		if(rightOutboardQRD.aboveThreshold()) //Outboard has crossed tape; next time both sensors are off, make a hard right
 		{
 			turnBias = RIGHT;
 		}
-		followTape();
+		return followTape();
 	}
 	
-	void followTapeLeftBiased()
+	boolean followTapeLeftBiased()
 	{
-		if(leftOutboardQRD.belowThreshold()) //Outboard has crossed tape; next time both sensors are off, make a hard left
+		if(leftOutboardQRD.aboveThreshold()) //Outboard has crossed tape; next time both sensors are off, make a hard left
 		{
 			turnBias = LEFT;
 		}
-		followTape();		
+		return followTape();		
 	}
 	
 	void makeHardLeft()
 	{
-		while(leftQRD.aboveThreshold())
+		while(leftQRD.belowThreshold())
 		{
 			motor.speed(LEFT_DRIVE_MOTOR, -SHARP_TURN_SPEED);
 			motor.speed(RIGHT_DRIVE_MOTOR, SHARP_TURN_SPEED);
 			leftQRD.read();
 		}
 		
-		motor.speed(LEFT_DRIVE_MOTOR, speed);
-		motor.speed(RIGHT_DRIVE_MOTOR, speed);
+		motor.speed(LEFT_DRIVE_MOTOR, baseSpeed);
+		motor.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
 		turnBias = NONE;
 	}
 	
@@ -134,23 +140,18 @@ public:
 			rightQRD.read();
 		}
 		
-		motor.speed(LEFT_DRIVE_MOTOR, speed);
-		motor.speed(RIGHT_DRIVE_MOTOR, speed);
+		motor.speed(LEFT_DRIVE_MOTOR, baseSpeed);
+		motor.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
 		turnBias = NONE;
 	}
 	
-	void errorTapeLost()
-	{
-		robotStateMachine.transitionTo(Error_TapeLost);
-	}
-
-  void followTape()
+  boolean followTape()
   {
     //Proportional control
     byte error = 0;    
-    if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) error = 0; //Both on tape
-    else if(leftQRD.aboveThreshold() && rightQRD.belowThreshold()) error = 1; //Left off tape, turn right
-    else if(leftQRD.belowThreshold() && rightQRD.aboveThreshold()) error = -1; //Right off tape, turn left
+    if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold()) error = 0; //Both on tape
+    else if(leftQRD.belowThreshold() && rightQRD.aboveThreshold()) error = 1; //Left off tape, turn right
+    else if(leftQRD.aboveThreshold() && rightQRD.belowThreshold()) error = -1; //Right off tape, turn left
     else //if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold()) //Both off tape -- use hisory or make a hard turn
     {
 		if(turnBias == NONE)
@@ -159,7 +160,7 @@ public:
 		  else if(lastError<0) error = -3; //Left on tape last; turn left
 		  else
 		  {
-			errorTapeLost();
+			return false; //Not successful
 		  }
 		}
 		else if(turnBias == LEFT)
@@ -181,10 +182,13 @@ public:
     }      
     int derivative=kD*(error-lastError)/((float)(time+lastTime));
 
-    int correction = proportional + derivative + turn;
+    int correction = proportional + derivative;
+    
+    leftMotorSpeed = baseSpeed+correction;
+    rightMotorSpeed = baseSpeed-correction;
 
-    motor.speed(LEFT_DRIVE_MOTOR, speed+correction);
-    motor.speed(RIGHT_DRIVE_MOTOR, speed-correction);
+    motor.speed(LEFT_DRIVE_MOTOR, leftMotorSpeed);
+    motor.speed(RIGHT_DRIVE_MOTOR, rightMotorSpeed);
     lastError = error;
     ++time;
     ++count;
@@ -194,6 +198,8 @@ public:
       display();
       count = 0;
     }
+    
+    return true;
   }
 
   void display()
@@ -203,11 +209,15 @@ public:
     LCD.print("L:" + String(leftMotorSpeed) + " ");
     LCD.print("R:" + String(rightMotorSpeed));
     LCD.setCursor(0,1);
-    LCD.print("L:" + String(leftQRD) + " ");
-    LCD.print("R:" + String(rightQRD));
+    LCD.print("L:" + String(leftQRD.reading) + " ");
+    LCD.print("R:" + String(rightQRD.reading));
   }
+  
+  Signal leftQRD;
+  Signal rightQRD;
+  Signal leftOutboardQRD;
+  Signal rightOutboardQRD;
 
-private:
   int time;
   int lastTime;
   int error;
@@ -215,20 +225,18 @@ private:
   int count;
   TurningBias turnBias;
   
-  int QRDThreshold;
+  int leftMotorSpeed;
+  int rightMotorSpeed;
+  
+  int QRDThresholdL;
+  int QRDThresholdR;
   int kP;
   int kD;
   int baseSpeed;
 
-  Signal leftQRD;
-  Signal rightQRD;
-  Signal leftOutboardQRD;
-  Signal rightOutboardQRD;
-  
-  friend class Menu;
 };
 
-TapeFollower TAPEFOLLOWER;
+extern TapeFollower TAPEFOLLOWER;
 
 #endif
 

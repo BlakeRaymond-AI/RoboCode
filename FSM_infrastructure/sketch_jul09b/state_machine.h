@@ -1,6 +1,16 @@
 #ifndef STATE_MACHINE_HEADER_GUARD
 #define STATE_MACHINE_HEADER_GUARD
 
+#include <FiniteStateMachine.h>
+#include <io_helper_functions.h>
+#include <tape_follower.h>
+#include <state_history.h>
+#include <menu.h>
+
+#include <phys253.h>       //   ***** from 253 template file
+#include <LiquidCrystal.h> //   ***** from 253 template file
+#include <Servo253.h>      //   ***** from 253 template file
+
 void travelToDepot_Enter();
 void travelToDepot_Update();
 void travelToDepot_Exit();
@@ -15,11 +25,14 @@ void errorHandling_TapeLost_Exit();
 
 void idle_Update();
 
-State TravelToDepot 			= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
-State TravelFromDepot			= State(travelFromDepot_Enter, travelFromDepot_Update, travelFromDepot_Exit);
-State Error_TapeLost			= State(errorHandling_TapeLost_Enter, errorHandling_TapeLost_Update, errorHandling_TapeLost_Exit);
-State Idle						= State(idle_Update);
+extern State TravelToDepot;
+extern State TravelFromDepot;
+extern State Error_TapeLost;
+extern State Idle;
 
-FSM robotStateMachine = FSM(TravelToDepot);
+extern FSM robotStateMachine;
+extern StateHistory STATE_HISTORY;
+
+
 
 #endif

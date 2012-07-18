@@ -9,7 +9,7 @@
 
 enum TAPEFOLLOWING_CONSTANTS 
 {
-  initialSpeed = 225,
+  initialSpeed = 275,
   initialQRDThreshold = 450,
   initialProportionalGain = 175,
   initialDerivGain = 175,
@@ -156,8 +156,8 @@ public:
     {
 		if(turnBias == NONE)
 		{
-		  if(lastError>0) error = 3; //Right on tape last; turn right
-		  else if(lastError<0) error = -3; //Left on tape last; turn left
+		  if(lastError>0) error = 5; //Right on tape last; turn right
+		  else if(lastError<0) error = -5; //Left on tape last; turn left
 		  else
 		  {
 			return false; //Not successful
@@ -196,6 +196,7 @@ public:
     if(count == 100)
     {
       display();
+	  updateSensorThresholds();
       count = 0;
     }
     
@@ -211,6 +212,12 @@ public:
     LCD.setCursor(0,1);
     LCD.print("L:" + String(leftQRD.reading) + " ");
     LCD.print("R:" + String(rightQRD.reading));
+  }
+  
+  void updateSensorThresholds()
+  {
+	leftQRD.setThreshold(QRDThresholdL);
+	rightQRD.setThreshold(QRDThresholdR);
   }
   
   Signal leftQRD;

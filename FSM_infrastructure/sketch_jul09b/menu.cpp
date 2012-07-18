@@ -3,7 +3,7 @@
 
 Menu::Menu(TapeFollower &tapeFollower)
 {
-        items.addElement(MenuItem("Prop: ", &tapeFollower.kP));
+    items.addElement(MenuItem("Prop: ", &tapeFollower.kP));
 	items.addElement(MenuItem("Deriv: ", &tapeFollower.kD));
 	items.addElement(MenuItem("Speed: ", &tapeFollower.baseSpeed));
 	items.addElement(MenuItem("QRDL: ", &tapeFollower.QRDThresholdL));

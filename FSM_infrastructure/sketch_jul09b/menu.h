@@ -54,7 +54,7 @@ public:
     {
       getItem();
       display();
-      delay(50);
+      delay(250);
       //Press start to set the value
       if(readStart())
       {
@@ -78,7 +78,7 @@ public:
   {
     LCD.clear();
     LCD.home();
-    //LCD.print(items.elementAt(index).displayText);
+    LCD.print(items.elementAt(index).displayText);
     LCD.print(knob(5));
   }  
 

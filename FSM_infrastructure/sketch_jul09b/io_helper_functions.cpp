@@ -6,7 +6,7 @@ int analogAverage(int pin)
   int total=0;
   int count=0;
 
-  while(count < 5)
+  while(count < 1)
   {
     total += analogRead(pin);
     ++count;
@@ -19,7 +19,7 @@ boolean readStart()
 {
   int on=0;
   int off=0;
-  while(on+off<20)
+  while(on+off<5)
   {
     if(startbutton())
       ++on;
@@ -33,7 +33,7 @@ boolean readStop()
 {
   int on=0;
   int off=0;
-  while(on+off<20)
+  while(on+off<5)
   {
     if(stopbutton())
       ++on;

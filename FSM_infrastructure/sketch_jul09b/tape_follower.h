@@ -148,7 +148,7 @@ public:
   boolean followTape()
   {
     //Proportional control
-    byte error = 0;    
+    int error = 0;    
     if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold()) error = 0; //Both on tape
     else if(leftQRD.belowThreshold() && rightQRD.aboveThreshold()) error = 1; //Left off tape, turn right
     else if(leftQRD.aboveThreshold() && rightQRD.belowThreshold()) error = -1; //Right off tape, turn left

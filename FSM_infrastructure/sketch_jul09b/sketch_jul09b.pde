@@ -27,8 +27,8 @@ void setup()
 void loop() 
 {
 	OBSERVER.update();
-        robotStateMachine.update();
-    	STATE_HISTORY.record();
+    robotStateMachine.update();
+    STATE_HISTORY.record();
 	
 	if(readStart())
 	{

@@ -21,20 +21,10 @@ void travelToDepot_Exit()
 
 void travelToDepot_Update()
 {
-	//if(!digitalRead(BUMPER))
-	//{
-		if(TAPEFOLLOWER.followTapeRightBiased())
-                  return;
-                else 
-                  robotStateMachine.transitionTo(Error_TapeLost);
-	//}
-	//else
-	//{
-	//	TAPEFOLLOWER.stop();
-	//	TAPEFOLLOWER.backUp();
-	//	TAPEFOLLOWER.turnAround();
-	//	robotStateMachine.transitionTo(TravelFromDepot);
-	//}
+	if(TAPEFOLLOWER.followTapeRightBiased())
+		return;
+    else 
+		robotStateMachine.transitionTo(Error_TapeLost);
 }
 
 void travelFromDepot_Enter()
@@ -52,9 +42,9 @@ void travelFromDepot_Update()
 	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold() && TAPEFOLLOWER.rightOutboardQRD.aboveThreshold()) //Go until both sensors hit tape
 	{
 		if(TAPEFOLLOWER.followTapeLeftBiased())
-                  return;
-                else
-                  robotStateMachine.transitionTo(Error_TapeLost);
+			return;
+        else
+			robotStateMachine.transitionTo(Error_TapeLost);
 	}
 	else //Stop
 	{
@@ -91,27 +81,5 @@ void errorHandling_TapeLost_Update()
 
 void idle_Update()
 {
-	LCD.clear();
-	LCD.home();
 
-	LCD.print("N");
-	for(int i=0; i<5; ++i)
-	{
-		LCD.print("YAN");
-		delay(500);
-	}
-	
-	LCD.setCursor(0,1);
-	
-	LCD.print("N");
-	for(int i=0; i<5; ++i)
-	{
-		LCD.print("YAN");
-		delay(500);
-	}
-	
-	if(readStart())
-	{
-		robotStateMachine.transitionTo(TravelToDepot);
-	}
 }

@@ -27,28 +27,25 @@ int gCount = 0;
 
 void loop() 
 {
-
   OBSERVER.update();
   robotStateMachine.update();
   STATE_HISTORY.record();
 
-  //if(readStart())
-  //{
-  //  MENU.open();
-  //}
-
   ++gCount;
-  if(gCount == 100)
+  if(gCount == 1000)
   {
     TAPEFOLLOWER.kP = analogRead(6);
     TAPEFOLLOWER.kD = analogRead(7);
     LCD.clear();
     LCD.home();
-    LCD.print("P: " + String(TAPEFOLLOWER.kP));
-    LCD.setCursor(0,1);
-    LCD.print("D: " + String(TAPEFOLLOWER.kD));
+    LCD.print("P: " + String(TAPEFOLLOWER.kP) + " D: " + String(TAPEFOLLOWER.kD);
     
     gCount = 0;
+	
+	if(readStart())
+	{
+		MENU.open();
+	}
   }
 }
 

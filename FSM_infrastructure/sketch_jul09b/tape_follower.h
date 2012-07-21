@@ -9,10 +9,11 @@
 
 enum TAPEFOLLOWING_CONSTANTS 
 {
-  initialSpeed = 275,
-  initialQRDThreshold = 450,
-  initialProportionalGain = 175,
-  initialDerivGain = 175,
+  initialSpeed = 200,
+  initialQRDThresholdL = 200,
+  initialQRDThresholdR = 200,
+  initialProportionalGain = 110,
+  initialDerivGain = 60,
   SHARP_TURN_SPEED = 250
 };
 
@@ -30,10 +31,10 @@ public:
   : kP(initialProportionalGain),
     kD(initialDerivGain),
     baseSpeed(initialSpeed),
-	leftQRD(LEFT_TAPE_QRD, initialQRDThreshold),
-	rightQRD(RIGHT_TAPE_QRD, initialQRDThreshold),
-	leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThreshold),
-	rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThreshold),
+	leftQRD(LEFT_TAPE_QRD, initialQRDThresholdL),
+	rightQRD(RIGHT_TAPE_QRD, initialQRDThresholdR),
+	leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThresholdL),
+	rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThresholdR),
     time(0),
     lastTime(0),
     error(0),
@@ -86,8 +87,6 @@ public:
 	{
 		OBSERVER.addSignal(&leftQRD);
 		OBSERVER.addSignal(&rightQRD);
-		OBSERVER.addSignal(&leftOutboardQRD);
-		OBSERVER.addSignal(&rightOutboardQRD);
 	}
 	
 	void disable() //Disable tape following by removing the sensors from the observer
@@ -95,8 +94,6 @@ public:
 		stop();
 		OBSERVER.removeSignal(&leftQRD);
 		OBSERVER.removeSignal(&rightQRD);
-		OBSERVER.removeSignal(&leftOutboardQRD);
-		OBSERVER.removeSignal(&rightOutboardQRD);
 	}
 	
 	boolean followTapeRightBiased()
@@ -149,28 +146,17 @@ public:
   {
     //Proportional control
     int error = 0;    
-    if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold()) error = 0; //Both on tape
+    if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold())
+	{
+	}	//Both on tape
     else if(leftQRD.belowThreshold() && rightQRD.aboveThreshold()) error = 1; //Left off tape, turn right
     else if(leftQRD.aboveThreshold() && rightQRD.belowThreshold()) error = -1; //Right off tape, turn left
-    else //if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold()) //Both off tape -- use hisory or make a hard turn
+    else if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) //Both off tape -- use history or make a hard turn
     {
-		if(turnBias == NONE)
-		{
-		  if(lastError>0) error = 5; //Right on tape last; turn right
-		  else if(lastError<0) error = -5; //Left on tape last; turn left
-		  else
-		  {
-			return false; //Not successful
-		  }
-		}
-		else if(turnBias == LEFT)
-		{
-			makeHardLeft();
-		}
-		else if(turnBias == RIGHT)
-		{
-			makeHardRight();
-		}		
+        if(lastError>0) 
+			error = 3;
+        else 
+			error = -3;
     }
     int proportional=kP*error;
 
@@ -178,14 +164,22 @@ public:
     if(error != lastError)
     {
       lastTime=time;
-      time=0;
+      time=1;
     }      
     int derivative=kD*(error-lastError)/((float)(time+lastTime));
 
     int correction = proportional + derivative;
     
-    leftMotorSpeed = baseSpeed+correction;
-    rightMotorSpeed = baseSpeed-correction;
+	if(correction > 0) //turn right
+	{
+		leftMotorSpeed = baseSpeed+correction;
+		rightMotorSpeed = baseSpeed;
+	}
+	else // correction < 0 turn left
+	{
+		leftMotorSpeed = baseSpeed;
+		rightMotorSpeed = baseSpeed-correction;
+	}
 
     motor.speed(LEFT_DRIVE_MOTOR, leftMotorSpeed);
     motor.speed(RIGHT_DRIVE_MOTOR, rightMotorSpeed);
@@ -195,8 +189,7 @@ public:
 
     if(count == 100)
     {
-      display();
-	  updateSensorThresholds();
+      //display();
       count = 0;
     }
     
@@ -212,12 +205,6 @@ public:
     LCD.setCursor(0,1);
     LCD.print("L:" + String(leftQRD.reading) + " ");
     LCD.print("R:" + String(rightQRD.reading));
-  }
-  
-  void updateSensorThresholds()
-  {
-	leftQRD.setThreshold(QRDThresholdL);
-	rightQRD.setThreshold(QRDThresholdR);
   }
   
   Signal leftQRD;

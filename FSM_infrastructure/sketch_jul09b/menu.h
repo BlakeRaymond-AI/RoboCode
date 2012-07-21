@@ -29,11 +29,6 @@ struct MenuItem
           valuePtr = NULL;
           return rhs;
         }
-
-        char* getDisplayText() const
-        { 
-          return displayText;
-        }
 	
 	char* displayText;
 	int* valuePtr;
@@ -46,15 +41,15 @@ public:
 
   void open()
   {
-    motor.stop(LEFT_DRIVE_MOTOR);
-    motor.stop(RIGHT_DRIVE_MOTOR);
+    tapeFollower.stop();
+	delay(500);
 
     //Press stop to exit the menu 
     while(!readStop())
     {
       getItem();
       display();
-      delay(250);
+	  delay(50);
       //Press start to set the value
       if(readStart())
       {
@@ -88,6 +83,7 @@ public:
   }
 
   Vector<MenuItem> items;
+  TapeFollower &tapeFollower;
   int index;
 };
 

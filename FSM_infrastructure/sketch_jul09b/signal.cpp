@@ -20,13 +20,3 @@
 	{
 		threshold = newThreshold;
 	}	
-	
-	void TimedSignal::read()
-	{
-		int time = millis();
-		if((time - lastRefreshTime) > refreshRate)
-		{
-			lastRefreshTime = time;
-			reading = analogRead(pin);
-		}
-	}

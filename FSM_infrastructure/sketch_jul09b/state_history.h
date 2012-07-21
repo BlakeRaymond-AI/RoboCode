@@ -2,6 +2,10 @@
 #define STATE_HISTORY_HEADER_GUARD
 
 #include <FiniteStateMachine.h>
+#include <phys253.h>       //   ***** from 253 template file
+#include <LiquidCrystal.h> //   ***** from 253 template file
+#include <Servo253.h>      //   ***** from 253 template file 
+
 
 class StateHistory
 {

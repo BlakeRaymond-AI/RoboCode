@@ -6,7 +6,7 @@ int analogAverage(int pin)
   int total=0;
   int count=0;
 
-  while(count < 1)
+  while(count < 5)
   {
     total += analogRead(pin);
     ++count;

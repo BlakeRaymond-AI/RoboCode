@@ -35,7 +35,7 @@ class Observer
 			signalList.get(i)->read();
 		}
 	}
-	
+
 	private:
 	Vector<Signal*> signalList;
 };

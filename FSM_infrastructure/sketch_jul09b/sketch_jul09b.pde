@@ -34,11 +34,14 @@ void loop()
   ++gCount;
   if(gCount == 1000)
   {
-    TAPEFOLLOWER.kP = analogRead(6);
-    TAPEFOLLOWER.kD = analogRead(7);
+    TAPEFOLLOWER.kP = map(analogRead(6), 0, 1023, 0.0, 100.0);
+    TAPEFOLLOWER.kD = map(analogRead(7), 0, 1023, 0.0, 100.0);
     LCD.clear();
     LCD.home();
-    LCD.print("P: " + String(TAPEFOLLOWER.kP) + " D: " + String(TAPEFOLLOWER.kD);
+    LCD.print("P: ");
+	LCD.print(TAPEFOLLOWER.kP);
+	LCD.print(" D: ");
+	LCD.print(TAPEFOLLOWER.kD);
     
     gCount = 0;
 	

@@ -4,34 +4,75 @@
 #include <io_helper_functions.h>
 #include <tape_follower.h>
 
-struct MenuItem
+class MenuItem
 {
-	MenuItem(char* displayText, int* valuePtr)
+public:
+	MenuItem(char* displayText, float* valuePtr, float minValue, float maxValue)
 	:displayText(displayText),
-	valuePtr(valuePtr)
+	valuePtrFloat(valuePtr),
+	valuePtrInt(NULL),
+	minValue(minValue),
+	maxValue(maxValue)
+	{}
+	
+	MenuItem(char* displayText, int* valuePtr, int minValue, int maxValue)
+	:displayText(displayText),
+	valuePtrInt(valuePtr),
+	valuePtrFloat(NULL),
+	minValue(minValue),
+	maxValue(maxValue)
 	{}
 
-        MenuItem()
-        :displayText(""),
-        valuePtr(NULL)
-        {}
+	MenuItem()
+	:displayText(""),
+	valuePtrInt(NULL),
+	valuePtrFloat(NULL),
+	minValue(0),
+	maxValue(0)
+	{}
         
-        const MenuItem& operator=(const MenuItem& rhs)
-        {
-          displayText = rhs.displayText;
-          valuePtr = rhs.valuePtr;
-          return rhs;
-        }
-        
-        int operator=(int rhs)
-        {
-          displayText = "";
-          valuePtr = NULL;
-          return rhs;
-        }
+	const MenuItem& operator=(const MenuItem& rhs)
+	{
+	  displayText = rhs.displayText;
+	  valuePtrInt = rhs.valuePtrInt;
+	  valuePtrFloat = rhs.valuePtrFloat;
+	  return rhs;
+	}
+	
+	int operator=(int rhs)
+	{
+	  displayText = "";
+	  valuePtrInt = NULL;
+	  valuePtrFloat = NULL;
+	  return rhs;
+	}
+	
+	void setValue(int value) const
+	{
+		if(valuePtrInt)
+		{
+			*valuePtrInt = mapKnob(value);
+		}
+		else if(valuePtrFloat)
+		{
+			*valuePtrFloat = mapKnob(value);
+		}
+	}
+	
+	float mapKnob(int value) const
+	{
+		return map(value, 0, 1023, minValue, maxValue);
+	}
 	
 	char* displayText;
-	int* valuePtr;
+	
+private:
+	
+	float* valuePtrFloat;
+	int* valuePtrInt;
+
+	float minValue;
+	float maxValue;
 };
 
 class Menu
@@ -74,12 +115,12 @@ public:
     LCD.clear();
     LCD.home();
     LCD.print(items.elementAt(index).displayText);
-    LCD.print(knob(5));
+    LCD.print(items.elementAt(index).mapKnob(knob(5)));
   }  
 
   void set(int value)
   {
-    *(items.elementAt(index).valuePtr) = value;
+    items.elementAt(index).setValue(value);
   }
 
   Vector<MenuItem> items;

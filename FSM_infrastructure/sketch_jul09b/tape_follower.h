@@ -9,12 +9,14 @@
 
 enum TAPEFOLLOWING_CONSTANTS 
 {
-  initialSpeed = 200,
+  initialFullSpeed = 175,
   initialQRDThresholdL = 200,
   initialQRDThresholdR = 200,
-  initialProportionalGain = 110,
-  initialDerivGain = 60,
-  SHARP_TURN_SPEED = 250
+  initialProportionalGain = 512,
+  initialDerivGain = 256,
+  initialIntegralGain = 0,
+  SHARP_TURN_SPEED = 250,
+  MAX_MOTOR_SPEED = 1023
 };
 
 enum TurningBias 
@@ -30,15 +32,17 @@ public:
   TapeFollower()
   : kP(initialProportionalGain),
     kD(initialDerivGain),
-    fullSpeed(initialSpeed),
+	kI(initialIntegralGain),
+    fullSpeed(initialFullSpeed),
 	leftQRD(LEFT_TAPE_QRD, initialQRDThresholdL),
 	rightQRD(RIGHT_TAPE_QRD, initialQRDThresholdR),
 	leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThresholdL),
 	rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThresholdR),
-    time(0),
-    lastTime(0),
     error(0),
-    lastError(0),
+    previousError1(0),
+	previousError2(0),
+	correction(0),
+	previousCorrection(0),
     count(0),
     turnBias(NONE),
     leftMotorSpeed(0),
@@ -49,8 +53,8 @@ public:
 	
 	void stop()
 	{
-		motor.speed(LEFT_DRIVE_MOTOR,0);
-		motor.speed(RIGHT_DRIVE_MOTOR,0);
+		motor.stop(LEFT_DRIVE_MOTOR);
+		motor.stop(RIGHT_DRIVE_MOTOR);
 	}
 	
 	void backUp()
@@ -150,9 +154,9 @@ public:
 		else if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) //Both off tape -- use history or make a hard turn
 		{
 			if(previousError1>0) 
-				error = 3;
+				error = maxError;
 			else 
-				error = -3;
+				error = -maxError;
 		}
 	}
 	
@@ -189,7 +193,7 @@ public:
   {
     getError();
     
-	correction = previousCorrection + (kP * 0.1) * (error - previousError1) + (kD * 0.1) * (error - 2 * previousError1 + previousError2);
+	correction = previousCorrection + kP * (error - previousError1) + kD * (error - 2 * previousError1 + previousError2) + kI * (error + previousError1) / 2.0;
 	
 	if(correction > 0) //Turn right -- Decrease right motor speed
 	{
@@ -231,7 +235,11 @@ public:
   Signal rightOutboardQRD;
 
   int error;
-  int lastError;
+  int previousError1;
+  int previousError2;
+  int maxError;
+  int correction;
+  int previousCorrection;
   int count;
   TurningBias turnBias;
   
@@ -240,8 +248,9 @@ public:
   
   int QRDThresholdL;
   int QRDThresholdR;
-  int kP;
-  int kD;
+  float kP;
+  float kD;
+  float kI;
   int fullSpeed;
 
 };

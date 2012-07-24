@@ -1,6 +1,9 @@
 #ifndef MOVEMENT_CONTROL_HEADER
 #define MOVEMENT_CONTROL_HEADER
 
+#include <pins.h>
+#include <signal.h>
+
 enum INITIAL_MOVEMENT_CONTROL_CONSTANTS
 {
 	initialBackUpSpeed = 512,

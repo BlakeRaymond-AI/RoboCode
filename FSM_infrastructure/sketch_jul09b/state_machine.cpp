@@ -86,23 +86,21 @@ void findBlock_Enter()
 void findBlock_Update()
 {
 	GRIPPER.close();
-	if(GRIPPER.closed)
+	
+	if(!GRIPPER.switchesClosed()) //back up, turn around, try again
 	{
-		if(!GRIPPER.switchesClosed()) //back up, turn around, try again
-		{
-			GRIPPER.open();
-			backUp(500);
-			turnRight(45);
-			backUp(500);
-			turnLeft(45);
-			forwardToDepot();
-		}
-		else //got a block
-		{
-			backUp(500);
-			turnLeft(90);
-			forwardToTape();
-		}
+		GRIPPER.open();
+		backUp(500);
+		turnRight(45);
+		backUp(500);
+		turnLeft(45);
+		forwardToDepot();
+	}
+	else //got a block
+	{
+		backUp(500);
+		turnLeft(90);
+		forwardToTape();
 	}
 }
 

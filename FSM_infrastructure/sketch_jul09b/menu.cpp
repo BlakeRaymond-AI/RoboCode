@@ -9,6 +9,9 @@ Menu::Menu(TapeFollower &tapeFollower)
     items.addElement(MenuItem("Speed: ", &tapeFollower.baseSpeed));
     items.addElement(MenuItem("QRDL: ", &tapeFollower.leftQRD.threshold));
     items.addElement(MenuItem("QRDR: ", &tapeFollower.rightQRD.threshold));
+	items.addElement(MenuItem("MPDT: ", &MOVEMENT_CONTROL.millisPerDegreeTurn));
+	items.addElement(MenuItem("Turn Spd: ", &MOVEMENT_CONTROL.turnSpeed));
+	items.addElement(MenuItem("Bckup Spd: ", &MOVEMENT_CONTROL.backUpSpeed));
 }
 
 Menu MENU(TAPEFOLLOWER);

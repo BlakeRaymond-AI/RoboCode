@@ -35,22 +35,28 @@ class Gripper
 	
 	void grip()
 	{
-		if(switchesClosed())
+		while(!closed)
 		{
-			delay(500);
-			motor.stop(GRIPPER_MOTOR);
-			closed = true;
-		}
-		else if(positionCounter >= MAX_POS_COUNTER)
-		{
-			motor.stop(GRIPPER_MOTOR);
-			closed = true;
-		}
-		else
-		{
-			closeJaw();
-			++positionCounter;
-			closed = false;
+			leftClawMicroswitch.read();
+			rightClawMicroswitch.read();
+			
+			if(switchesClosed())
+			{
+				delay(500);
+				motor.stop(GRIPPER_MOTOR);
+				closed = true;
+			}
+			else if(positionCounter >= MAX_POS_COUNTER)
+			{
+				motor.stop(GRIPPER_MOTOR);
+				closed = true;
+			}
+			else
+			{
+				closeJaw();
+				++positionCounter;
+				closed = false;
+			}
 		}
 	}
 	
@@ -66,16 +72,19 @@ class Gripper
 	
 	void open()
 	{
-		if(positionCounter > 0)
+		while(!open)
 		{
-			openJaw();
-			--positionCounter;
-			open = false;
-		}
-		else
-		{
-			motor.stop(GRIPPER_MOTOR);
-			open = true;
+			if(positionCounter > 0)
+			{
+				openJaw();
+				--positionCounter;
+				open = false;
+			}
+			else
+			{
+				motor.stop(GRIPPER_MOTOR);
+				open = true;
+			}
 		}
 	}
 	

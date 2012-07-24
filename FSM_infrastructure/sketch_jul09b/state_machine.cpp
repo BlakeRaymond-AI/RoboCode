@@ -49,17 +49,14 @@ void travelFromDepot_Exit()
 
 void travelFromDepot_Update()
 {
-	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold() && TAPEFOLLOWER.rightOutboardQRD.aboveThreshold()) //Go until both sensors hit tape
+	if(digitalRead(LEFT_BUMPER) || digitalRead(RIGHT_BUMPER)) //Go until both sensors hit tape
 	{
-		if(TAPEFOLLOWER.followTapeLeftBiased())
-                  return;
-                else
-                  robotStateMachine.transitionTo(Error_TapeLost);
+		TAPEFOLLOWER.stop();
+		robotStateMachine.transitionTo(FindBlock);
 	}
 	else //Stop
 	{
-		TAPEFOLLOWER.stop();
-		robotStateMachine.transitionTo(Idle);
+		TAPEFOLLOWER.followTapeRightBiased();
 	}
 }
 
@@ -81,37 +78,49 @@ void errorHandling_TapeLost_Enter()
 	STATE_HISTORY.rollback();
 }
 
-void errorHandling_TapeLost_Exit()
+void findBlock_Enter()
 {
+	GRIPPER.enable();
 }
 
-void errorHandling_TapeLost_Update()
+void findBlock_Update()
 {
+	GRIPPER.close();
+	if(GRIPPER.closed)
+	{
+		if(!GRIPPER.switchesClosed()) //back up, turn around, try again
+		{
+			GRIPPER.open();
+			backUp(500);
+			turnRight(45);
+			backUp(500);
+			turnLeft(45);
+			forwardToDepot();
+		}
+		else //got a block
+		{
+			backUp(500);
+			turnLeft(90);
+			forwardToTape();
+		}
+	}
 }
 
-void idle_Update()
+void findBlock_Exit()
 {
-	LCD.clear();
-	LCD.home();
+	GRIPPER.disable();
+}
 
-	LCD.print("N");
-	for(int i=0; i<5; ++i)
-	{
-		LCD.print("YAN");
-		delay(500);
-	}
-	
-	LCD.setCursor(0,1);
-	
-	LCD.print("N");
-	for(int i=0; i<5; ++i)
-	{
-		LCD.print("YAN");
-		delay(500);
-	}
-	
-	if(readStart())
-	{
-		robotStateMachine.transitionTo(TravelToDepot);
-	}
+void dropBlock_Enter()
+{
+
+}
+
+void dropBlock_Update()
+{
+
+}
+
+void dropBlock_Exit()
+{
 }

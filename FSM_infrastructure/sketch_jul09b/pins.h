@@ -25,7 +25,8 @@ enum SERVOS
 
 enum DIGITAL_IN
 {
-        BUMPER = 0
+        LEFT_BUMPER = 0,
+		RIGHT_BUMPER =1
 };
 
 #endif

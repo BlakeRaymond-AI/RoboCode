@@ -23,12 +23,16 @@ void errorHandling_TapeLost_Enter();
 void errorHandling_TapeLost_Update();
 void errorHandling_TapeLost_Exit();
 
+void dropBlock_Enter();
+void dropBlock_Update();
+void dropBlock_Exit();
+
 void idle_Update();
 
 extern State TravelToDepot;
 extern State TravelFromDepot;
-extern State Error_TapeLost;
-extern State Idle;
+extern State FindBlock;
+extern State DropBlock;
 
 extern FSM robotStateMachine;
 extern StateHistory STATE_HISTORY;

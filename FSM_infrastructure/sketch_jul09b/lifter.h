@@ -3,6 +3,7 @@
 
 #include <signal.h>
 #include <pins.h>
+#include <observer.h>
 
 enum LifterPosition
 {
@@ -17,7 +18,9 @@ class Lifter
 		Lifter()
 		:bottomSwitch(LIFTER_SWITCH_BOT),
 		stackingSwitch(LIFTER_SWITCH_MID),
-		topSwitch(LIFTER_SWITCH_TOP)
+		topSwitch(LIFTER_SWITCH_TOP),
+                currentPosition(STACKING),
+                targetPosition(LOWERED)
 		{
 		
 		}
@@ -97,12 +100,14 @@ class Lifter
 			{
 				currentPosition = STACKING;
 			}
-			else if(raisedSwitch.on())
+			else if(topSwitch.on())
 			{
 				currentPosition = RAISED;
 			}
 		}
 	
 };
+
+extern Lifter LIFTER;
 
 #endif

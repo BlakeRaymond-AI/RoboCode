@@ -8,6 +8,7 @@
 #include <menu.h>
 #include <movement_control.h>
 #include <gripper.h>
+#include <lifter.h>
 
 #include <phys253.h>       //   ***** from 253 template file
 #include <LiquidCrystal.h> //   ***** from 253 template file

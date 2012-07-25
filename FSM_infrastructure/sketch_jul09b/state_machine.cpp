@@ -13,17 +13,18 @@ StateHistory STATE_HISTORY(robotStateMachine);
 
 void travelToDepot_Enter()
 {
-
+	TAPEFOLLOWER.enable();
+	MOVEMENT_CONTROL.turnLeft(45);
 }
 
 void travelToDepot_Exit()
 {
-
+	TAPEFOLLOWER.disable();
 }
 
 void travelToDepot_Update()
 {
-
+	TAPEFOLLOWER.followTape();
 }
 
 void findBlock_Enter()
@@ -39,13 +40,15 @@ void findBlock_Update()
 	{
 		GRIPPER.open();
 		MOVEMENT_CONTROL.backUp();
-                MOVEMENT_CONTROL.turnRight(45);
+        MOVEMENT_CONTROL.turnRight(45);
 		MOVEMENT_CONTROL.backUp();
 		MOVEMENT_CONTROL.turnLeft(45);
 		MOVEMENT_CONTROL.forwardToDepot();
 	}
 	else //got a block
 	{
+		LIFTER.setTargetPosition(RAISED);
+		LIFTER.update();
 		MOVEMENT_CONTROL.backUp();
 		MOVEMENT_CONTROL.turnLeft(90);
 		robotStateMachine.transitionTo(FindTape);
@@ -87,8 +90,12 @@ void dropBlock_Enter()
 
 void dropBlock_Update()
 {
-	GRIPPER.open();
-	MOVEMENT_CONTROL.backUp();
+	if(LIFTER.ready())
+	{
+		GRIPPER.open();
+		MOVEMENT_CONTROL.backUp();
+		robotStateMachine.transitionTo(TravelToDepot);
+	}
 }
 
 void dropBlock_Exit()
@@ -121,6 +128,7 @@ void travelToFirstTurnFromDepot_Exit()
 void travelFromFirstTurnToBuildArea_Enter()
 {
 	TAPEFOLLOWER.enable();
+	LIFTER.setTargetPosition(STACKING);
 }
 
 void travelFromFirstTurnToBuildArea_Update()

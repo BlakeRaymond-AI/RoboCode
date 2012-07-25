@@ -21,6 +21,7 @@
 
 void setup() 
 {
+  LIFTER.enable();
 }
 
 int gCount = 0;
@@ -29,6 +30,7 @@ void loop()
 {
 
   OBSERVER.update();
+  LIFTER.update();
   robotStateMachine.update();
   STATE_HISTORY.record();
 

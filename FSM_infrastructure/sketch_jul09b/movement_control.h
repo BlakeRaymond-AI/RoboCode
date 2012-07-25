@@ -20,7 +20,7 @@ class MovementControl
 	public:
 	MovementControl()
 	: leftBumper(LEFT_BUMPER),
-	rightBumper(RIGHT_BUMPER),
+        rightBumper(RIGHT_BUMPER),
 	backUpSpeed(initialBackUpSpeed),
 	turnSpeed(initialTurnSpeed),
 	inchSpeed(initialInchSpeed),
@@ -104,7 +104,7 @@ class MovementControl
 	int inchSpeed;
 	int backUpTime;
 	DigitalSignal leftBumper;
-	DigitalSignal rightBumper;
+        DigitalSignal rightBumper;
 };
 
 extern MovementControl MOVEMENT_CONTROL;

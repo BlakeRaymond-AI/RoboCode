@@ -5,8 +5,6 @@
 #include <observer.h>
 #include <pins.h>
 
-const int MAX_MOTOR_SPEED = 1023;
-
 class Gripper
 {
   public:

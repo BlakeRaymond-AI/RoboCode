@@ -1,81 +1,29 @@
 #include "WProgram.h"
 #include <state_machine.h>
 
-State TravelToDepot 			= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
-State TravelFromDepot			= State(travelFromDepot_Enter, travelFromDepot_Update, travelFromDepot_Exit);
-State Error_TapeLost			= State(errorHandling_TapeLost_Enter, errorHandling_TapeLost_Update, errorHandling_TapeLost_Exit);
-State Idle						= State(idle_Update);
+State TravelToDepot 						= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
+State TravelToFirstTurnFromDepot			= State(travelToFirstTurnFromDepot_Enter, travelToFirstTurnFromDepot_Update, travelToFirstTurnFromDepot_Exit);
+State TravelFromFirstTurnToBuildArea 		= State(travelFromFirstTurnToBuildArea_Enter, travelFromFirstTurnToBuildArea_Update, travelFromFirstTurnToBuildArea_Exit);
+State FindBlock 							= State(findBlock_Enter, findBlock_Update, findBlock_Exit);
+State DropBlock								= State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
+State FindTape								= State(findTape_Enter, findTape_Update, findTape_Exit);
 
 FSM robotStateMachine(TravelToDepot);
 StateHistory STATE_HISTORY(robotStateMachine);
 
 void travelToDepot_Enter()
 {
-	TAPEFOLLOWER.enable();
+
 }
 
 void travelToDepot_Exit()
 {
-	TAPEFOLLOWER.disable();
+
 }
 
 void travelToDepot_Update()
 {
-	//if(!digitalRead(BUMPER))
-	//{
-		if(TAPEFOLLOWER.followTapeRightBiased())
-                  return;
-                else 
-                  robotStateMachine.transitionTo(Error_TapeLost);
-	//}
-	//else
-	//{
-	//	TAPEFOLLOWER.stop();
-	//	TAPEFOLLOWER.backUp();
-	//	TAPEFOLLOWER.turnAround();
-	//	robotStateMachine.transitionTo(TravelFromDepot);
-	//}
-}
 
-void travelFromDepot_Enter()
-{
-	TAPEFOLLOWER.enable();
-}
-
-void travelFromDepot_Exit()
-{
-	TAPEFOLLOWER.disable();
-}
-
-void travelFromDepot_Update()
-{
-	if(digitalRead(LEFT_BUMPER) || digitalRead(RIGHT_BUMPER)) //Go until both sensors hit tape
-	{
-		TAPEFOLLOWER.stop();
-		robotStateMachine.transitionTo(FindBlock);
-	}
-	else //Stop
-	{
-		TAPEFOLLOWER.followTapeRightBiased();
-	}
-}
-
-void errorHandling_TapeLost_Enter()
-{
-	//TODO
-	TAPEFOLLOWER.stop();
-	
-	LCD.clear();
-	LCD.home();
-	LCD.print("---ERROR---");
-	LCD.setCursor(0,1);
-	LCD.print("---TAPE LOST---");
-	
-	while(!readStart())
-	{
-		delay(100);
-	}	
-	STATE_HISTORY.rollback();
 }
 
 void findBlock_Enter()
@@ -90,17 +38,45 @@ void findBlock_Update()
 	if(!GRIPPER.switchesClosed()) //back up, turn around, try again
 	{
 		GRIPPER.open();
-		backUp(500);
+		backUp(BACK_UP_TIME);
 		turnRight(45);
-		backUp(500);
+		backUp(BACK_UP_TIME);
 		turnLeft(45);
 		forwardToDepot();
 	}
 	else //got a block
 	{
-		backUp(500);
+		backUp(BACK_UP_TIME);
 		turnLeft(90);
-		forwardToTape();
+		robotStateMachine.transitionTo(FindTape);
+	}
+}
+
+void findBlock_Exit()
+{
+	GRIPPER.disable();
+}
+
+void findTape_Enter()
+{
+	TAPEFOLLOWER.enable(); //Enable the outboard QRDs
+}
+
+void findTape_Exit()
+{
+	TAPEFOLLOWER.disable();
+}
+
+void findTape_Update()
+{
+	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold())
+	{
+		MOVEMENT_CONTROL.backUp(BACK_UP_TIME);
+		MOVEMENT_CONTROL.turnLeft(90);
+	}
+	else if(TAPEFOLLOWER.rightOutboardQRD.aboveThreshold())
+	{
+		robotStateMachine.transitionTo(TravelFromDepot);
 	}
 }
 
@@ -116,9 +92,76 @@ void dropBlock_Enter()
 
 void dropBlock_Update()
 {
-
+	GRIPPER.open();
+	MOVEMENT_CONTROL.backUp();
 }
 
 void dropBlock_Exit()
 {
+}
+
+void travelToFirstTurnFromDepot_Enter()
+{
+	TAPEFOLLOWER.enable();
+}
+
+void travelToFirstTurnFromDepot_Update()
+{
+	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold())
+	{
+		TAPEFOLLOWER.makeHardLeft();
+	}
+	else
+	{
+		TAPEFOLLOWER.followTape();
+	}
+}
+
+void travelToFirstTurnFromDepot_Exit()
+{
+	TAPEFOLLOWER.disable();
+}
+
+void travelFromFirstTurnToBuildArea_Enter()
+{
+	TAPEFOLLOWER.enable();
+}
+
+void travelFromFirstTurnToBuildArea_Update()
+{
+	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold() && TAPEFOLLOWER.rightOutboardQRD.aboveThreshold()) //Reached depot
+	{
+		robotStateMachine.transitionTo(DropBlock);
+	}
+	else if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold()) //Left has reached depot; turn left
+	{
+		MOVEMENT_CONTROL.stop();
+		delay(100);
+		while(TAPEFOLLOWER.rightOutboardQRD.belowThreshold())
+		{
+			MOVEMENT_CONTROL.inchleft();
+			TAPEFOLLOWER.rightOutboardQRD.read();
+		}
+		MOVEMENT_CONTROL.stop();
+	}
+	else if(TAPEFOLLOWER.rightOutboardQRD.aboveThreshold()) //Right has reached depot; turn right
+	{
+		MOVEMENT_CONTROL.stop();
+		delay(100);
+		while(TAPEFOLLOWER.leftOutboardQRD.belowThreshold())
+		{
+			MOVEMENT_CONTROL.inchRight();
+			TAPEFOLLOWER.leftOutboardQRD.read();
+		}
+		MOVEMENT_CONTROL.stop();
+	}
+	else
+	{
+		TAPEFOLLOWER.followTape();
+	}
+}
+
+void  travelFromFirstTurnToBuildArea_Exit()
+{
+	TAPEFOLLOWER.disable();
 }

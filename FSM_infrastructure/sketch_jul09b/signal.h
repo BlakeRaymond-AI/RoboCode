@@ -3,24 +3,64 @@
 
 #include <io_helper_functions.h>
 
-struct Signal
+class Signal
 {
-	Signal(int pin, int threshold)
-	:threshold(threshold),
-	pin(pin)
+public:
+	Signal(int pin)
+	:pin(pin)
 	{}
 	
-	void read();
+	virtual void read() =0;
 	
-	bool aboveThreshold();
+	int pin;
+};
+
+class AnalogSignal : public Signal
+{
+	public:
+	AnalogSignal(int pin, int threshold)
+	:Signal(pin),
+	threshold(threshold)
+	{}
 	
-	bool belowThreshold();
+	virtual void read()
+	{
+		reading = analogRead(pin);
+	}
+	
+	boolean aboveThreshold();
+	
+	boolean belowThreshold();
 	
 	void setThreshold(int newThreshold);
 	
 	int reading;
 	int threshold;
-	int pin;
+};
+
+class DigitalSignal : public Signal
+{
+public:
+	DigitalSignal(int pin)
+	:Signal(pin)
+	{}
+	
+	virtual void read()
+	{
+		reading = digitalRead(pin);
+	}
+	
+	boolean on()
+	{
+		return reading;
+	}
+	
+	boolean off()
+	{
+		return !reading;
+	}
+	
+	boolean reading;
 };
 
 #endif

@@ -1,22 +1,22 @@
 #include "WProgram.h"
 #include <signal.h>
 
-	void Signal::read()
+	void AnalogSignal::read()
 	{
 		reading = analogRead(pin);
 	}
 	
-	bool Signal::aboveThreshold()
+	bool AnalogSignal::aboveThreshold()
 	{
 		return reading >= threshold;
 	}
 	
-	bool Signal::belowThreshold()
+	bool AnalogSignal::belowThreshold()
 	{
 		return reading < threshold;
 	}
 	
-	void Signal::setThreshold(int newThreshold)
+	void AnalogSignal::setThreshold(int newThreshold)
 	{
 		threshold = newThreshold;
 	}	

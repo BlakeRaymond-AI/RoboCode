@@ -7,7 +7,9 @@
 enum INITIAL_MOVEMENT_CONTROL_CONSTANTS
 {
 	initialBackUpSpeed = 512,
-	initialTurnSpeed = 512
+	initialTurnSpeed = 512,
+	initialInchSpeed = 100,
+	initialBackUpTime = 500
 };
 
 const float initialMillisPerDegreeTurn = 1000.0/360.0;
@@ -17,14 +19,18 @@ class MovementControl
 	public:
 	MovementControl()
 	: (leftBumper(LEFT_BUMPER)),
-	rightBumper(RIGHT_BUMPER)
+	rightBumper(RIGHT_BUMPER),
+	backUpSpeed(initialBackUpSpeed),
+	turnSpeed(initialTurnSpeed),
+	inchSpeed(initialInchSpeed),
+	backUpTime(initialBackUpTime)
 	{}
 	
-	void backUp(int millis)
+	void backUp()
 	{
 		motor.speed(LEFT_DRIVE_MOTOR, -backUpSpeed);
 		motor.speed(RIGHT_DRIVE_MOTOR, -backUpSpeed);
-		delay(millis);
+		delay(backUpTime);
 		motor.stop(LEFT_DRIVE_MOTOR);
 		motor.stop(RIGHT_DRIVE_MOTOR);
 	}
@@ -49,6 +55,18 @@ class MovementControl
 		motor.stop(RIGHT_DRIVE_MOTOR);
 	}
 	
+	void inchLeft()
+	{
+		motor.speed(LEFT_DRIVE_MOTOR, -inchSpeed);
+		motor.speed(RIGHT_DRIVE_MOTOR, inchSpeed);
+	}
+	
+	void inchRight()
+	{
+		motor.speed(LEFT_DRIVE_MOTOR, inchSpeed);
+		motor.speed(RIGHT_DRIVE_MOTOR, -inchSpeed);
+	}
+	
 	void forwardToTape()
 	{
 		do
@@ -70,12 +88,14 @@ class MovementControl
 		
 		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.fullSpeed);
 		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.fullSpeed);
-		} while(leftBumper.off() && rightBumper.off());
+		} while(leftBumper.on() && rightBumper.on()); //NO switch closes on contact, bringing digital signal down
 	}
 
 	int backUpSpeed;
 	int turnSpeed;
 	float millisPerDegreeTurn;
+	int inchSpeed;
+	int backUpTime;
 	DigitalSignal leftBumper;
 	DigitalSignal rightBumper;
 };

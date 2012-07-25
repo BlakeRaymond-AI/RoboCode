@@ -32,11 +32,12 @@ void loop()
   robotStateMachine.update();
   STATE_HISTORY.record();
 
-  //if(readStart())
-  //{
-  //  MENU.open();
-  //}
+  if(readStart())
+  {
+    MENU.open();
+  }
 
+  /*
   ++gCount;
   if(gCount == 100)
   {
@@ -50,5 +51,6 @@ void loop()
     
     gCount = 0;
   }
+  */
 }
 

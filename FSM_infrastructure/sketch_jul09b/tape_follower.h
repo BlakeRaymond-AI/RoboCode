@@ -7,6 +7,8 @@
 #include <observer.h>
 #include <pins.h>
 
+//TODO Try out a self-adjusting QRD threshold setter by spinning around in a circle, recording minimum, maximum, and average values
+
 enum TAPEFOLLOWING_CONSTANTS 
 {
   initialSpeed = 200,
@@ -14,6 +16,7 @@ enum TAPEFOLLOWING_CONSTANTS
   initialQRDThresholdR = 200,
   initialProportionalGain = 110,
   initialDerivGain = 60,
+  initialMaxError = 3,
   SHARP_TURN_SPEED = 250
 };
 
@@ -116,6 +119,7 @@ public:
 	
 	void makeHardLeft()
 	{
+		//TODO
 		while(leftQRD.belowThreshold())
 		{
 			motor.speed(LEFT_DRIVE_MOTOR, -SHARP_TURN_SPEED);
@@ -172,13 +176,13 @@ public:
     
 	if(correction > 0) //turn right
 	{
-		leftMotorSpeed = baseSpeed+correction;
-		rightMotorSpeed = baseSpeed;
+		leftMotorSpeed = baseSpeed;
+		rightMotorSpeed = baseSpeed-correction;
 	}
 	else // correction < 0 turn left
 	{
-		leftMotorSpeed = baseSpeed;
-		rightMotorSpeed = baseSpeed-correction;
+		leftMotorSpeed = baseSpeed+correction;
+		rightMotorSpeed = baseSpeed;
 	}
 
     motor.speed(LEFT_DRIVE_MOTOR, leftMotorSpeed);
@@ -189,7 +193,7 @@ public:
 
     if(count == 100)
     {
-      //display();
+      display();
       count = 0;
     }
     
@@ -207,17 +211,16 @@ public:
     LCD.print("R:" + String(rightQRD.reading));
   }
   
-  Signal leftQRD;
-  Signal rightQRD;
-  Signal leftOutboardQRD;
-  Signal rightOutboardQRD;
+  AnalogSignal leftQRD;
+  AnalogSignal rightQRD;
+  AnalogSignal leftOutboardQRD;
+  AnalogSignal rightOutboardQRD;
 
   int time;
   int lastTime;
   int error;
   int lastError;
   int count;
-  TurningBias turnBias;
   
   int leftMotorSpeed;
   int rightMotorSpeed;
@@ -227,7 +230,6 @@ public:
   int kP;
   int kD;
   int baseSpeed;
-
 };
 
 extern TapeFollower TAPEFOLLOWER;

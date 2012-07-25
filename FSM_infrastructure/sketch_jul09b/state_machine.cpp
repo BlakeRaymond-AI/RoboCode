@@ -33,21 +33,21 @@ void findBlock_Enter()
 
 void findBlock_Update()
 {
-	GRIPPER.close();
+	GRIPPER.grip();
 	
 	if(!GRIPPER.switchesClosed()) //back up, turn around, try again
 	{
 		GRIPPER.open();
-		backUp(BACK_UP_TIME);
-		turnRight(45);
-		backUp(BACK_UP_TIME);
-		turnLeft(45);
-		forwardToDepot();
+		MOVEMENT_CONTROL.backUp();
+                MOVEMENT_CONTROL.turnRight(45);
+		MOVEMENT_CONTROL.backUp();
+		MOVEMENT_CONTROL.turnLeft(45);
+		MOVEMENT_CONTROL.forwardToDepot();
 	}
 	else //got a block
 	{
-		backUp(BACK_UP_TIME);
-		turnLeft(90);
+		MOVEMENT_CONTROL.backUp();
+		MOVEMENT_CONTROL.turnLeft(90);
 		robotStateMachine.transitionTo(FindTape);
 	}
 }
@@ -71,18 +71,13 @@ void findTape_Update()
 {
 	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold())
 	{
-		MOVEMENT_CONTROL.backUp(BACK_UP_TIME);
+		MOVEMENT_CONTROL.backUp();
 		MOVEMENT_CONTROL.turnLeft(90);
 	}
 	else if(TAPEFOLLOWER.rightOutboardQRD.aboveThreshold())
 	{
-		robotStateMachine.transitionTo(TravelFromDepot);
+		robotStateMachine.transitionTo(TravelToFirstTurnFromDepot);
 	}
-}
-
-void findBlock_Exit()
-{
-	GRIPPER.disable();
 }
 
 void dropBlock_Enter()
@@ -98,6 +93,7 @@ void dropBlock_Update()
 
 void dropBlock_Exit()
 {
+
 }
 
 void travelToFirstTurnFromDepot_Enter()
@@ -139,7 +135,7 @@ void travelFromFirstTurnToBuildArea_Update()
 		delay(100);
 		while(TAPEFOLLOWER.rightOutboardQRD.belowThreshold())
 		{
-			MOVEMENT_CONTROL.inchleft();
+			MOVEMENT_CONTROL.inchLeft();
 			TAPEFOLLOWER.rightOutboardQRD.read();
 		}
 		MOVEMENT_CONTROL.stop();

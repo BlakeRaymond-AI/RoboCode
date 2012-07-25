@@ -14,7 +14,9 @@ enum ANALOG_IN
 enum MOTORS
 {
 	LEFT_DRIVE_MOTOR = 0,
-	RIGHT_DRIVE_MOTOR = 1
+	RIGHT_DRIVE_MOTOR = 1,
+        GRIPPER_MOTOR = 2,
+        LIFTER_MOTOR =3
 };
 
 enum SERVOS
@@ -26,7 +28,9 @@ enum SERVOS
 enum DIGITAL_IN
 {
         LEFT_BUMPER = 0,
-		RIGHT_BUMPER =1
+        RIGHT_BUMPER = 1,
+        GRIPPER_LEFT_SWITCH = 2,
+        GRIPPER_RIGHT_SWITCH = 3
 };
 
 #endif

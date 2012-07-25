@@ -107,7 +107,6 @@ public:
 		
 		motor.speed(LEFT_DRIVE_MOTOR, baseSpeed);
 		motor.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
-		turnBias = NONE;
 	}
 	
 	void makeHardRight()
@@ -121,7 +120,6 @@ public:
 		
 		motor.speed(LEFT_DRIVE_MOTOR, baseSpeed);
 		motor.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
-		turnBias = NONE;
 	}
 	
   boolean followTape()

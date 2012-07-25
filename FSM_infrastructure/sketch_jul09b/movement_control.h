@@ -3,6 +3,7 @@
 
 #include <pins.h>
 #include <signal.h>
+#include <tape_follower.h>
 
 enum INITIAL_MOVEMENT_CONTROL_CONSTANTS
 {
@@ -18,7 +19,7 @@ class MovementControl
 {
 	public:
 	MovementControl()
-	: (leftBumper(LEFT_BUMPER)),
+	: leftBumper(LEFT_BUMPER),
 	rightBumper(RIGHT_BUMPER),
 	backUpSpeed(initialBackUpSpeed),
 	turnSpeed(initialTurnSpeed),
@@ -74,8 +75,8 @@ class MovementControl
 		TAPEFOLLOWER.leftOutboardQRD.read();
 		TAPEFOLLOWER.rightOutboardQRD.read();
 		
-		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.fullSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.fullSpeed);
+		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
+		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
 		} while(TAPEFOLLOWER.leftOutboardQRD.belowThreshold() && TAPEFOLLOWER.rightOutboardQRD.belowThreshold());		
 	}
 	
@@ -86,10 +87,16 @@ class MovementControl
 		leftBumper.read();
 		rightBumper.read();
 		
-		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.fullSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.fullSpeed);
+		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
+		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
 		} while(leftBumper.on() && rightBumper.on()); //NO switch closes on contact, bringing digital signal down
 	}
+
+        void stop()
+        {
+                motor.stop(LEFT_DRIVE_MOTOR);
+                motor.stop(RIGHT_DRIVE_MOTOR);
+        }
 
 	int backUpSpeed;
 	int turnSpeed;

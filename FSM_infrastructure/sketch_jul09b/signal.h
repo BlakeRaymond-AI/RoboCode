@@ -28,11 +28,15 @@ class AnalogSignal : public Signal
 		reading = analogRead(pin);
 	}
 	
-	boolean aboveThreshold();
+	bool aboveThreshold()
+	{
+		return reading >= threshold;
+	}
 	
-	boolean belowThreshold();
-	
-	void setThreshold(int newThreshold);
+	bool belowThreshold()
+	{
+		return reading < threshold;
+	}
 	
 	int reading;
 	int threshold;

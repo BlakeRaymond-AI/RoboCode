@@ -3,11 +3,13 @@
 
 #include <signal.h>
 #include <observer.h>
+#include <pins.h>
 
 const int MAX_MOTOR_SPEED = 1023;
 
 class Gripper
 {
+  public:
 	Gripper()
 	: leftClawMicroswitch(GRIPPER_LEFT_SWITCH),
 	rightClawMicroswitch(GRIPPER_RIGHT_SWITCH),
@@ -35,64 +37,67 @@ class Gripper
 	
 	void grip()
 	{
-		while(!closed)
+		while(!isClosed)
 		{
 			leftClawMicroswitch.read();
 			rightClawMicroswitch.read();
 			
 			if(switchesClosed())
 			{
-				delay(500);
+				delay(1500);
 				motor.stop(GRIPPER_MOTOR);
-				closed = true;
+				isClosed = true;
 			}
-			else if(positionCounter >= MAX_POS_COUNTER)
+			else if(positionCounter >= maxPositionCounter)
 			{
 				motor.stop(GRIPPER_MOTOR);
-				closed = true;
+				isClosed = true;
 			}
 			else
 			{
 				closeJaw();
 				++positionCounter;
-				closed = false;
+				isClosed = false;
 			}
 		}
 	}
 	
-	void closeJaw();
+	void closeJaw()
 	{
 		motor.speed(GRIPPER_MOTOR, MAX_MOTOR_SPEED);
 	}
 	
-	void openJaw();
+	void openJaw()
 	{
-		motor.speed(GRIPPER_MOTOR_, -MAX_MOTOR_SPEED);
+		motor.speed(GRIPPER_MOTOR, -MAX_MOTOR_SPEED);
 	}
 	
 	void open()
 	{
-		while(!open)
+		while(!isOpen)
 		{
 			if(positionCounter > 0)
 			{
 				openJaw();
 				--positionCounter;
-				open = false;
+				isOpen = false;
 			}
 			else
 			{
 				motor.stop(GRIPPER_MOTOR);
-				open = true;
+				isOpen = true;
 			}
 		}
 	}
 	
 	DigitalSignal leftClawMicroswitch;
 	DigitalSignal rightClawMicroswitch;
-	long int positionCounter;
-	boolean closed;
-	boolean open;
+	unsigned long positionCounter;
+	boolean isClosed;
+	boolean isOpen;
+        unsigned long maxPositionCounter;
 };
+
+extern Gripper GRIPPER;
 
 #endif

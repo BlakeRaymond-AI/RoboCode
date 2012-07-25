@@ -26,6 +26,18 @@ class MovementControl
 	inchSpeed(initialInchSpeed),
 	backUpTime(initialBackUpTime)
 	{}
+
+        void enable()
+        {
+           OBSERVER.addSignal((Signal*)&leftBumper);
+           OBSERVER.addSignal((Signal*)&rightBumper);
+        }
+        
+        void disable()
+        {
+           OBSERVER.removeSignal((Signal*)&leftBumper);
+           OBSERVER.removeSignal((Signal*)&rightBumper);
+        }
 	
 	void backUp()
 	{

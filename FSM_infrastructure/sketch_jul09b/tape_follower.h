@@ -14,17 +14,12 @@ enum TAPEFOLLOWING_CONSTANTS
   initialSpeed = 200,
   initialQRDThresholdL = 200,
   initialQRDThresholdR = 200,
+  initialQRDThresholdOL = 200,
+  initialQRDThresholdOR = 200,
   initialProportionalGain = 110,
   initialDerivGain = 60,
   initialMaxError = 3,
   SHARP_TURN_SPEED = 250
-};
-
-enum TurningBias 
-{
-	LEFT,
-	RIGHT,
-	NONE
 };
 
 class TapeFollower
@@ -34,15 +29,15 @@ public:
   : kP(initialProportionalGain),
     kD(initialDerivGain),
     baseSpeed(initialSpeed),
-	leftQRD(LEFT_TAPE_QRD, initialQRDThresholdL),
-	rightQRD(RIGHT_TAPE_QRD, initialQRDThresholdR),
-	leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThresholdL),
-	rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThresholdR),
+    leftQRD(LEFT_TAPE_QRD, initialQRDThresholdL),
+    rightQRD(RIGHT_TAPE_QRD, initialQRDThresholdR),
+    leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThresholdOL),
+    rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThresholdOR),
     time(0),
     lastTime(0),
     error(0),
     lastError(0),
-	lastDifferentError(0),
+    lastDifferentError(0),
     count(0),
     leftMotorSpeed(0),
     rightMotorSpeed(0)
@@ -130,7 +125,7 @@ public:
     else if(leftQRD.aboveThreshold() && rightQRD.belowThreshold()) error = -1; //Right off tape, turn left
     else if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) //Both off tape -- use history
     {
-        if(lastError>0) 
+        if(lastDifferentError>0) 
 			error = 3;
         else 
 			error = -3;
@@ -140,7 +135,6 @@ public:
     if(error != lastError)
     {
 		lastDifferentError = lastError;
-		lastTime = time;
 		time = 1;
     }
 	else
@@ -148,7 +142,7 @@ public:
 		++time;
 	}
 	
-    int correction = kP * error + kD * (error - lastDifferentError) / ((float)(time + lastTime));
+    int correction = kP * error + kD * (error - lastDifferentError) / ((float)(time));
     
 	if(correction > 0) //turn right
 	{
@@ -203,6 +197,8 @@ public:
   
   int QRDThresholdL;
   int QRDThresholdR;
+  int QRDThresholdOL;
+  int QRDThresholdOR;
   int kP;
   int kD;
   int baseSpeed;

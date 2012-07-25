@@ -103,6 +103,15 @@ public:
     }
 
     LCD.clear();
+	LCD.clear();
+	LCD.home();
+	int i=3;
+	while(i>0)
+	{
+		LCD.print(i);
+		delay(1000);
+		--i;
+	}
   }
 
   //Scroll through the menu using one of the knobs  

@@ -34,16 +34,16 @@ void dropBlock_Enter();
 void dropBlock_Exit();
 void dropBlock_Update();
 
-void travelToFirstTurnFromDepot_Enter();
-void travelToFirstTurnFromDepot_Update();
-void travelToFirstTurnFromDepot_Exit();
+void travelFromDepotToFirstTurn_Enter();
+void travelFromDepotToFirstTurn_Update();
+void travelFromDepotToFirstTurn_Exit();
 
 void travelFromFirstTurnToBuildArea_Enter();
 void travelFromFirstTurnToBuildArea_Update();
 void travelFromFirstTurnToBuildArea_Exit();
 
 extern State TravelToDepot;
-extern State TravelToFirstTurnFromDepot;
+extern State TravelFromDepotToFirstTurn;
 extern State TravelFromFirstTurnToBuildArea;
 extern State FindBlock;
 extern State DropBlock;

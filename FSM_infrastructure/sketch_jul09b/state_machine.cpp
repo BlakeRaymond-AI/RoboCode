@@ -1,12 +1,12 @@
 #include "WProgram.h"
 #include <state_machine.h>
 
-State TravelToDepot 						= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
-State TravelToFirstTurnFromDepot			= State(travelToFirstTurnFromDepot_Enter, travelToFirstTurnFromDepot_Update, travelToFirstTurnFromDepot_Exit);
+State TravelToDepot 				= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
+State TravelFromDepotToFirstTurn		= State(travelFromDepotToFirstTurn_Enter, travelFromDepotToFirstTurn_Update, travelFromDepotToFirstTurn_Exit);
 State TravelFromFirstTurnToBuildArea 		= State(travelFromFirstTurnToBuildArea_Enter, travelFromFirstTurnToBuildArea_Update, travelFromFirstTurnToBuildArea_Exit);
-State FindBlock 							= State(findBlock_Enter, findBlock_Update, findBlock_Exit);
-State DropBlock								= State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
-State FindTape								= State(findTape_Enter, findTape_Update, findTape_Exit);
+State FindBlock 				= State(findBlock_Enter, findBlock_Update, findBlock_Exit);
+State DropBlock					= State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
+State FindTape					= State(findTape_Enter, findTape_Update, findTape_Exit);
 
 FSM robotStateMachine(TravelToDepot);
 StateHistory STATE_HISTORY(robotStateMachine);
@@ -14,6 +14,7 @@ StateHistory STATE_HISTORY(robotStateMachine);
 void travelToDepot_Enter()
 {
 	TAPEFOLLOWER.enable();
+        MOVEMENT_CONTROL.enable();
 	MOVEMENT_CONTROL.turnLeft(45);
 }
 
@@ -25,6 +26,10 @@ void travelToDepot_Exit()
 void travelToDepot_Update()
 {
 	TAPEFOLLOWER.followTape();
+        if(MOVEMENT_CONTROL.leftBumper.on() || MOVEMENT_CONTROL.rightBumper.on())
+        {
+          robotStateMachine.transitionTo(FindBlock);
+        }
 }
 
 void findBlock_Enter()
@@ -40,7 +45,7 @@ void findBlock_Update()
 	{
 		GRIPPER.open();
 		MOVEMENT_CONTROL.backUp();
-        MOVEMENT_CONTROL.turnRight(45);
+                MOVEMENT_CONTROL.turnRight(45);
 		MOVEMENT_CONTROL.backUp();
 		MOVEMENT_CONTROL.turnLeft(45);
 		MOVEMENT_CONTROL.forwardToDepot();
@@ -79,7 +84,7 @@ void findTape_Update()
 	}
 	else if(TAPEFOLLOWER.rightOutboardQRD.aboveThreshold())
 	{
-		robotStateMachine.transitionTo(TravelToFirstTurnFromDepot);
+		robotStateMachine.transitionTo(TravelFromDepotToFirstTurn);
 	}
 }
 
@@ -112,7 +117,9 @@ void travelToFirstTurnFromDepot_Update()
 {
 	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold())
 	{
+                TAPEFOLLOWER.stop();
 		TAPEFOLLOWER.makeHardLeft();
+                robotStateMachine.transitionTo(TravelFromFirstTurnToBuildArea);
 	}
 	else
 	{

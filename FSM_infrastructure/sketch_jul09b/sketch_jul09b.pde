@@ -9,15 +9,7 @@
 #include <signal.h>
 #include <tape_follower.h>
 #include <state_machine.h>
-
-
-/* TODO
- 	Implement Supervisor or determine it isn't necessary
- 	Sort out Menu dependencies via header/source split
- 	Add necessary #includes to each header file
- 	Clean up followTape()
- 	Properly implement errorHandling_TapeLost
- */
+#include <state_controller.h>
 
 void setup() 
 {
@@ -31,13 +23,20 @@ void loop()
 
   OBSERVER.update();
   LIFTER.update();
-  robotStateMachine.update();
+  //robotStateMachine.update();
   STATE_HISTORY.record();
 
   if(readStart())
   {
     MENU.open();
   }
+  if(readStop())
+  {
+    STATECONTROLLER.open();
+  }
+  
+  MOVEMENT_CONTROL.turnLeft(90);
+  delay(3000);
 
   /*
   ++gCount;

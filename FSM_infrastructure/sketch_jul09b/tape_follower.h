@@ -42,8 +42,8 @@ public:
     lastTime(0),
     error(0),
     lastError(0),
+	lastDifferentError(0),
     count(0),
-    turnBias(NONE),
     leftMotorSpeed(0),
     rightMotorSpeed(0)
     {
@@ -54,14 +54,6 @@ public:
 	{
 		motor.speed(LEFT_DRIVE_MOTOR,0);
 		motor.speed(RIGHT_DRIVE_MOTOR,0);
-	}
-	
-	void backUp()
-	{
-		motor.speed(LEFT_DRIVE_MOTOR,-baseSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, -baseSpeed);
-		delay(1000);
-		stop();
 	}
 	
 	void turnAround()
@@ -90,6 +82,8 @@ public:
 	{
 		OBSERVER.addSignal(&leftQRD);
 		OBSERVER.addSignal(&rightQRD);
+		OBSERVER.addSignal(&leftOutboardQRD);
+		OBSERVER.addSignal(&rightOutboardQRD);
 	}
 	
 	void disable() //Disable tape following by removing the sensors from the observer
@@ -97,24 +91,8 @@ public:
 		stop();
 		OBSERVER.removeSignal(&leftQRD);
 		OBSERVER.removeSignal(&rightQRD);
-	}
-	
-	boolean followTapeRightBiased()
-	{
-		if(rightOutboardQRD.aboveThreshold()) //Outboard has crossed tape; next time both sensors are off, make a hard right
-		{
-			turnBias = RIGHT;
-		}
-		return followTape();
-	}
-	
-	boolean followTapeLeftBiased()
-	{
-		if(leftOutboardQRD.aboveThreshold()) //Outboard has crossed tape; next time both sensors are off, make a hard left
-		{
-			turnBias = LEFT;
-		}
-		return followTape();		
+		OBSERVER.removeSignal(&leftOutboardQRD);
+		OBSERVER.removeSignal(&rightOutboardQRD);
 	}
 	
 	void makeHardLeft()
@@ -148,31 +126,31 @@ public:
 	
   boolean followTape()
   {
-    //Proportional control
-    int error = 0;    
-    if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold())
-	{
-	}	//Both on tape
+    //Error function
+    if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold()) error = 0; //Both on tape
     else if(leftQRD.belowThreshold() && rightQRD.aboveThreshold()) error = 1; //Left off tape, turn right
     else if(leftQRD.aboveThreshold() && rightQRD.belowThreshold()) error = -1; //Right off tape, turn left
-    else if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) //Both off tape -- use history or make a hard turn
+    else if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) //Both off tape -- use history
     {
         if(lastError>0) 
 			error = 3;
         else 
 			error = -3;
     }
-    int proportional=kP*error;
 
     //Derivative estimation
     if(error != lastError)
     {
-      lastTime=time;
-      time=1;
-    }      
-    int derivative=kD*(error-lastError)/((float)(time+lastTime));
-
-    int correction = proportional + derivative;
+		lastDifferentError = lastError;
+		lastTime = time;
+		time = 1;
+    }
+	else
+	{
+		++time;
+	}
+	
+    int correction = kP * error + kD * (error - lastDifferentError) / ((float)(time + lastTime));
     
 	if(correction > 0) //turn right
 	{
@@ -188,7 +166,6 @@ public:
     motor.speed(LEFT_DRIVE_MOTOR, leftMotorSpeed);
     motor.speed(RIGHT_DRIVE_MOTOR, rightMotorSpeed);
     lastError = error;
-    ++time;
     ++count;
 
     if(count == 100)
@@ -216,11 +193,12 @@ public:
   AnalogSignal leftOutboardQRD;
   AnalogSignal rightOutboardQRD;
 
-  int time;
-  int lastTime;
-  int error;
-  int lastError;
-  int count;
+  unsigned long time;
+  unsigned long lastTime;
+  char error;
+  char lastError;
+  char lastDifferentError;
+  char count;
   
   int leftMotorSpeed;
   int rightMotorSpeed;

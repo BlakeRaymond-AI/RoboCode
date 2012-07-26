@@ -14,8 +14,8 @@ StateHistory STATE_HISTORY(robotStateMachine);
 void travelToDepot_Enter()
 {
 	TAPEFOLLOWER.enable();
-        MOVEMENT_CONTROL.enable();
-	MOVEMENT_CONTROL.turnLeft(45);
+        //MOVEMENT_CONTROL.enable();
+	//MOVEMENT_CONTROL.turnLeft(90);
 }
 
 void travelToDepot_Exit()
@@ -26,10 +26,10 @@ void travelToDepot_Exit()
 void travelToDepot_Update()
 {
 	TAPEFOLLOWER.followTape();
-        if(MOVEMENT_CONTROL.leftBumper.on() || MOVEMENT_CONTROL.rightBumper.on())
-        {
-          robotStateMachine.transitionTo(FindBlock);
-        }
+        //if(MOVEMENT_CONTROL.leftBumper.on() || MOVEMENT_CONTROL.rightBumper.on())
+        //{
+        //  robotStateMachine.transitionTo(FindBlock);
+        // }
 }
 
 void findBlock_Enter()
@@ -108,12 +108,12 @@ void dropBlock_Exit()
 
 }
 
-void travelToFirstTurnFromDepot_Enter()
+void travelFromDepotToFirstTurn_Enter()
 {
 	TAPEFOLLOWER.enable();
 }
 
-void travelToFirstTurnFromDepot_Update()
+void travelFromDepotToFirstTurn_Update()
 {
 	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold())
 	{
@@ -127,7 +127,7 @@ void travelToFirstTurnFromDepot_Update()
 	}
 }
 
-void travelToFirstTurnFromDepot_Exit()
+void travelFromDepotToFirstTurn_Exit()
 {
 	TAPEFOLLOWER.disable();
 }

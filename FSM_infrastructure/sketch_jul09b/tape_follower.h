@@ -11,14 +11,14 @@
 
 enum TAPEFOLLOWING_CONSTANTS 
 {
-  initialSpeed = 200,
+  initialSpeed = 330,
   initialQRDThresholdL = 200,
   initialQRDThresholdR = 200,
   initialQRDThresholdOL = 200,
   initialQRDThresholdOR = 200,
-  initialProportionalGain = 110,
-  initialDerivGain = 60,
-  initialMaxError = 3,
+  initialProportionalGain = 210,
+  initialDerivGain = 400,
+  initialMaxError = 6,
   SHARP_TURN_SPEED = 250
 };
 
@@ -40,7 +40,8 @@ public:
     lastDifferentError(0),
     count(0),
     leftMotorSpeed(0),
-    rightMotorSpeed(0)
+    rightMotorSpeed(0),
+    maxError(initialMaxError)
     {
 		
     }
@@ -126,9 +127,9 @@ public:
     else if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) //Both off tape -- use history
     {
         if(lastDifferentError>0) 
-			error = 3;
+			error = maxError;
         else 
-			error = -3;
+			error = -maxError;
     }
 
     //Derivative estimation
@@ -189,6 +190,7 @@ public:
   unsigned long lastTime;
   char error;
   char lastError;
+  int maxError;
   char lastDifferentError;
   char count;
   

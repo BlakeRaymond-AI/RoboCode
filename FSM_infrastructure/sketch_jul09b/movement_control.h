@@ -13,7 +13,7 @@ enum INITIAL_MOVEMENT_CONTROL_CONSTANTS
 	initialBackUpTime = 500
 };
 
-const float initialMillisPerDegreeTurn = 1000.0/360.0;
+const float initialMillisPerDegreeTurn = 3.5;
 
 class MovementControl
 {
@@ -24,7 +24,8 @@ class MovementControl
 	backUpSpeed(initialBackUpSpeed),
 	turnSpeed(initialTurnSpeed),
 	inchSpeed(initialInchSpeed),
-	backUpTime(initialBackUpTime)
+	backUpTime(initialBackUpTime),
+        millisPerDegreeTurn(initialMillisPerDegreeTurn)
 	{}
 
         void enable()

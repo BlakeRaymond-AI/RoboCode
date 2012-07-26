@@ -23,7 +23,7 @@ void loop()
 
   OBSERVER.update();
   LIFTER.update();
-  //robotStateMachine.update();
+  robotStateMachine.update();
   STATE_HISTORY.record();
 
   if(readStart())
@@ -33,10 +33,7 @@ void loop()
   if(readStop())
   {
     STATECONTROLLER.open();
-  }
-  
-  MOVEMENT_CONTROL.turnLeft(90);
-  delay(3000);
+  }  
 
   /*
   ++gCount;

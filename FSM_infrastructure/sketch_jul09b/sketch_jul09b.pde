@@ -12,43 +12,74 @@
 #include <state_controller.h>
 
 void setup() 
-{
+{ 
+  MOVEMENT_CONTROL.enable();
+  TAPEFOLLOWER.enable();
+  TAPEFOLLOWER.turnBias = 1;
+  
   LIFTER.enable();
+  LIFTER.setTargetPosition(LOWERED);
+  GRIPPER.enable();
 }
-
-int gCount = 0;
 
 void loop() 
 {
-
   OBSERVER.update();
   LIFTER.update();
-  robotStateMachine.update();
-  STATE_HISTORY.record();
-
+  
+  TAPEFOLLOWER.followTape();
+  
+  if(MOVEMENT_CONTROL.hitDepot())
+  {
+    motor.stop_all();
+      
+    GRIPPER.grip();
+    if(GRIPPER.switchesClosed())
+    {
+      LIFTER.setTargetPosition(RAISED);
+    }
+    else
+    {
+      GRIPPER.open();
+    }
+    LIFTER.update();
+    delay(2000);
+    TAPEFOLLOWER.turnAround();
+    TAPEFOLLOWER.turnBias = -1;
+  }    
+  
+  if(GRIPPER.switchesClosed() && TAPEFOLLOWER.rightOutboardQRD.aboveThreshold() && (TAPEFOLLOWER.leftQRD.aboveThreshold() || TAPEFOLLOWER.rightQRD.aboveThreshold()))
+  {
+    motor.stop(LEFT_DRIVE_MOTOR);
+    motor.stop(RIGHT_DRIVE_MOTOR);
+    LIFTER.setTargetPosition(LOWERED);
+    while(!LIFTER.ready())
+    {
+      OBSERVER.update();
+      LIFTER.update();
+    }
+    GRIPPER.open();
+    TAPEFOLLOWER.turnAround();
+  }
+  
+  
   if(readStart())
   {
-    MENU.open();
+    LIFTER.setTargetPosition(LOWERED);
+    while(!LIFTER.ready())
+    {
+      OBSERVER.update();
+      LIFTER.update();
+    }
   }
   if(readStop())
   {
-    STATECONTROLLER.open();
-  }  
-
-  /*
-  ++gCount;
-  if(gCount == 100)
-  {
-    TAPEFOLLOWER.kP = analogRead(6);
-    TAPEFOLLOWER.kD = analogRead(7);
-    LCD.clear();
-    LCD.home();
-    LCD.print("P: " + String(TAPEFOLLOWER.kP));
-    LCD.setCursor(0,1);
-    LCD.print("D: " + String(TAPEFOLLOWER.kD));
-    
-    gCount = 0;
+    LIFTER.setTargetPosition(RAISED);
+    while(!LIFTER.ready())
+    {
+      OBSERVER.update();
+      LIFTER.update();
+    }
   }
-  */
 }
 

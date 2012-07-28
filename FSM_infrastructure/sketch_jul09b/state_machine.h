@@ -34,6 +34,11 @@ void dropBlock_Enter();
 void dropBlock_Exit();
 void dropBlock_Update();
 
+void findBlockInBuildArea_Enter();
+void findBlockInBuildArea_Update();
+void findBlockInBuildArea_Exit();
+
+/*
 void travelFromDepotToFirstTurn_Enter();
 void travelFromDepotToFirstTurn_Update();
 void travelFromDepotToFirstTurn_Exit();
@@ -41,13 +46,15 @@ void travelFromDepotToFirstTurn_Exit();
 void travelFromFirstTurnToBuildArea_Enter();
 void travelFromFirstTurnToBuildArea_Update();
 void travelFromFirstTurnToBuildArea_Exit();
+*/
 
 extern State TravelToDepot;
-extern State TravelFromDepotToFirstTurn;
-extern State TravelFromFirstTurnToBuildArea;
+//extern State TravelFromDepotToFirstTurn;
+//extern State TravelFromFirstTurnToBuildArea;
 extern State FindBlock;
 extern State DropBlock;
 extern State FindTape;
+extern State FindBlockInBuildArea;
 
 extern FSM robotStateMachine;
 extern StateHistory STATE_HISTORY;

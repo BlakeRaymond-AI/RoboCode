@@ -56,12 +56,12 @@ public:
 	
 	boolean on()
 	{
-		return reading;
+		return !reading;
 	}
 	
 	boolean off()
 	{
-		return !reading;
+		return reading;
 	}
 	
 	boolean reading;

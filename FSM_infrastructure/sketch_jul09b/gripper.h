@@ -11,7 +11,10 @@ class Gripper
 	Gripper()
 	: leftClawMicroswitch(GRIPPER_LEFT_SWITCH),
 	rightClawMicroswitch(GRIPPER_RIGHT_SWITCH),
-	positionCounter(0)
+	positionCounter(0),
+        isClosed(false),
+        isOpen(false),
+        maxPositionCounter(200000)
 	{
 	
 	}
@@ -28,13 +31,14 @@ class Gripper
 		OBSERVER.removeSignal((Signal*)&rightClawMicroswitch);
 	}
 	
-	boolean switchesClosed()
+	bool switchesClosed()
 	{
 		return leftClawMicroswitch.on() && rightClawMicroswitch.on();
 	}
 	
 	void grip()
 	{
+                isOpen = false;
 		while(!isClosed)
 		{
 			leftClawMicroswitch.read();
@@ -42,7 +46,7 @@ class Gripper
 			
 			if(switchesClosed())
 			{
-				delay(1500);
+				delay(500);
 				motor.stop(GRIPPER_MOTOR);
 				isClosed = true;
 			}
@@ -72,6 +76,8 @@ class Gripper
 	
 	void open()
 	{
+                positionCounter *= 1.40;
+                isClosed = false;
 		while(!isOpen)
 		{
 			if(positionCounter > 0)

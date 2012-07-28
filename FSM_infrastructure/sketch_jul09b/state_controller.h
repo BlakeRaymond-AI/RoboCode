@@ -34,8 +34,8 @@ class StateController
                 states.addElement(StateControllerItem(&TravelToDepot, "TravelToDepot"));
 		states.addElement(StateControllerItem(&FindBlock, "FindBlock"));
 		states.addElement(StateControllerItem(&FindTape, "FindTape"));
-		states.addElement(StateControllerItem(&TravelFromDepotToFirstTurn, "Depot->FirstTurn"));
-		states.addElement(StateControllerItem(&TravelFromFirstTurnToBuildArea, "FirstTurn->BuildArea"));
+		//states.addElement(StateControllerItem(&TravelFromDepotToFirstTurn, "Depot->FirstTurn"));
+		//states.addElement(StateControllerItem(&TravelFromFirstTurnToBuildArea, "FirstTurn->BuildArea"));
 		states.addElement(StateControllerItem(&DropBlock, "DropBlock"));	
         }	
 		

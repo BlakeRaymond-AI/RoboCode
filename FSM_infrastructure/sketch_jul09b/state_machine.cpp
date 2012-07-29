@@ -1,16 +1,13 @@
 #include "WProgram.h"
 #include <state_machine.h>
 
-State TravelToDepot 				= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
-//State TravelFromDepotToFirstTurn		= State(travelFromDepotToFirstTurn_Enter, travelFromDepotToFirstTurn_Update, travelFromDepotToFirstTurn_Exit);
-//State TravelFromFirstTurnToBuildArea 		= State(travelFromFirstTurnToBuildArea_Enter, travelFromFirstTurnToBuildArea_Update, travelFromFirstTurnToBuildArea_Exit);
-State FindBlock 				= State(findBlock_Enter, findBlock_Update, findBlock_Exit);
-State DropBlock					= State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
-State FindTape					= State(findTape_Enter, findTape_Update, findTape_Exit);
-State FindBlockInBuildArea 		= State(findBlockInBuildArea_Enter, findBlockInBuildArea_Update, findBlockInBuildArea_Exit);
+State TravelToDepot = State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
+State FindBlock = State(findBlock_Enter, findBlock_Update, findBlock_Exit);
+State TravelFromDepot = State(travelFromDepot_Enter, travelFromDepot_Update, travelFromDepot_Exit);
+State DropBlock = State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
+State StackBlocks = State(stackBlocks_Enter, stackBlocks_Update, stackBlocks_Exit);
 
 FSM robotStateMachine(TravelToDepot);
-StateHistory STATE_HISTORY(robotStateMachine);
 
 void travelToDepot_Enter()
 {
@@ -30,6 +27,8 @@ void travelToDepot_Update()
     TAPEFOLLOWER.followTape();
     if(MOVEMENT_CONTROL.leftBumper.on() || MOVEMENT_CONTROL.rightBumper.on())
     {
+		DRIVE_SYSTEM.stop();
+		MOVEMENT_CONTROL.backUp();
 		robotStateMachine.transitionTo(FindBlock);
         LCD.clear();
         LCD.print("Finding block");
@@ -39,33 +38,73 @@ void travelToDepot_Update()
 void findBlock_Enter()
 {
       MOVEMENT_CONTROL.enable();
-	//GRIPPER.enable();
+		GRIPPER.enable();
+		
+		//RANGEFINDERS.enable();
+		
+		MOVEMENT_CONTROL.turnLeft(45);
 }
 
 void findBlock_Update()
 {
-	//GRIPPER.grip();
+	//pan left and right, looking for a gap
+
+	DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
 	
-	if(/*!GRIPPER.switchesClosed()*/true) //back up, turn around, try again
+	if(//left rangefinder.gap && right rangefinder.gap)
 	{
-		//GRIPPER.open();
-		MOVEMENT_CONTROL.backUp();
-        MOVEMENT_CONTROL.turnRight(45);
-		MOVEMENT_CONTROL.backUp();
-		MOVEMENT_CONTROL.turnLeft(45);
-		MOVEMENT_CONTROL.forwardToDepot();
-        motor.stop(LEFT_DRIVE_MOTOR);
-        motor.stop(RIGHT_DRIVE_MOTOR);
-        delay(3000);
+		DRIVE_SYSTEM.stop();
+		
+		//RANGEFINDERS.moveToBlock();
+		
+		GRIPPER.grip();
+		
+		if(GRIPPER.switchesClosed())
+		{
+				LIFTER.setTargetPosition(LIFTER_RAISED);
+				LIFTER.enable();
+				LIFTER.update();
+				delay(1000);
+				robotStateMachine.transitionTo(TravelFromDepot)
+		}
+		else
+		{
+				//back up and try again
+				MOVEMENT_CONTROL.backUp();
+				MOVEMENT_CONTROL.turnLeft(45);
+		}
 	}
-	else //got a block
+	else if(//bothTapesTried == false)
 	{
-		LIFTER.setTargetPosition(RAISED);
-		LIFTER.update();
-		MOVEMENT_CONTROL.backUp();
+		//find the other tape, try again
+		MOVEMENT_CONTROL.turnRight(45);
+		
+		TAPEFOLLOWER.enable();
+		MOVEMENT_CONTROL.forwardToTape();
+		TAPEFOLLOWER.disable();
+		
 		MOVEMENT_CONTROL.turnLeft(90);
-		robotStateMachine.transitionTo(FindTape);
+		MOVEMENT_CONTROL.forwardToDepot();
+		MOVEMENT_CONTROL.backUp();
+		MOVEMENT_CONTROL.turnLeft(45);		
 	}
+	else //give up
+	{
+		DRIVE_SYSTEM.stop();
+		LCD.clear();
+		LCD.home();
+		LCD.print("NO BLOCKS FOUND");
+		while(true)
+		{
+				if(readStart())
+				{
+						robotStateMachine.transitionTo(TravelToDepot);
+						break;
+				}
+				delay(500);
+		}
+    }
+			   
 }
 
 void findBlock_Exit()
@@ -73,30 +112,16 @@ void findBlock_Exit()
 	MOVEMENT_CONTROL.disable();
 }
 
-void findTape_Enter()
+void travelFromDepot_Enter()
 {
-	TAPEFOLLOWER.enable(); //Enable the outboard QRDs
 }
 
-void findTape_Exit()
+void travelFromDepot_Update()
 {
-	TAPEFOLLOWER.disable();
 }
 
-void findTape_Update()
+void travelFromDepot_Exit()
 {
-	if(TAPEFOLLOWER.leftOutboardQRD.aboveThreshold() || TAPEFOLLOWER.rightOutboardQRD.aboveThreshold())
-	{
-		MOVEMENT_CONTROL.backUp();
-		MOVEMENT_CONTROL.turnLeft(45);
-		MOVEMENT_CONTROL.forwardToTape();
-		//robotStateMachine.transitionTo(TravelFromDepotToFirstTurn);
-	}
-	else 
-	{
-		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
-	}
 }
 
 void dropBlock_Enter()
@@ -118,30 +143,4 @@ void dropBlock_Exit()
 {
 
 }
-
-void findBlockInBuildArea_Enter()
-{
-	//if(centreBumper.on())
-	//{
-		motor.stop(LEFT_DRIVE_MOTOR);
-		motor.stop(RIGHT_DRIVE_MOTOR);
-	//}
-	//else
-//	{
-		motor.speed(LEFT_DRIVE_MOTOR, MOVEMENT_CONTROL.minMotorSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, MOVEMENT_CONTROL.minMotorSpeed);
-//	}
-}
-
-void findBlockInBuildArea_Update()
-{
-
-}
-
-void findBlockInBuildArea_Exit()
-{
-
-}
-
-
 

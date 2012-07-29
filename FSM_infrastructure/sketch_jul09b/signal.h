@@ -7,12 +7,19 @@ class Signal
 {
 public:
 	Signal(int pin)
-	:pin(pin)
+	:pin(pin),
+	enabled(false)
 	{}
 	
 	virtual void read() =0;
 	
+	void enable()
+	{
+		enabled = true;
+	}
+	
 	int pin;
+	bool enabled;
 };
 
 class AnalogSignal : public Signal
@@ -25,7 +32,8 @@ class AnalogSignal : public Signal
 	
 	virtual void read()
 	{
-		reading = analogRead(pin);
+		if(enabled)
+				reading = analogRead(pin);
 	}
 	
 	bool aboveThreshold()
@@ -51,20 +59,32 @@ public:
 	
 	virtual void read()
 	{
-		reading = digitalRead(pin);
+		if(enabled)
+				reading = digitalRead(pin);
 	}
 	
-	boolean on()
+	bool on()
 	{
 		return !reading;
 	}
 	
-	boolean off()
+	bool off()
 	{
 		return reading;
 	}
 	
-	boolean reading;
+	bool reading;
+};
+
+class Rangefinder : public Signal
+{
+		virtual void read()
+		{
+				lastReading = reading;
+				reading = analogAverage(pin);
+		}
+		
+		int lastReading;
 };
 
 #endif

@@ -1,26 +1,23 @@
 #include <WProgram.h>
 #include <menu.h>
 
-Menu::Menu(TapeFollower &tapeFollower)
-:tapeFollower(tapeFollower)
+Menu::Menu()
 {
-    items.addElement(MenuItem("Prop: ", &tapeFollower.kP, 0, 512));
-    items.addElement(MenuItem("Deriv: ", &tapeFollower.kD, 0, 2000));
-    items.addElement(MenuItem("Speed: ", &tapeFollower.baseSpeed, 0, 1023));
-    items.addElement(MenuItem("QRDL: ", &tapeFollower.leftQRD.threshold, 0, 1023));
-    items.addElement(MenuItem("QRDR: ", &tapeFollower.rightQRD.threshold, 0, 1023));
-    items.addElement(MenuItem("QRDOL: ", &tapeFollower.leftOutboardQRD.threshold, 0, 1023));
-    items.addElement(MenuItem("QRDOR: ", &tapeFollower.rightOutboardQRD.threshold, 0, 1023));
-    items.addElement(MenuItem("MaxErr; ", &tapeFollower.maxError, 0, 10));
-	items.addElement(MenuItem("MPDT: ", &MOVEMENT_CONTROL.millisPerDegreeTurn, 0, 20));
-	items.addElement(MenuItem("Turn Spd: ", &MOVEMENT_CONTROL.turnSpeed, 0, 512));
-	items.addElement(MenuItem("Bckup Spd: ", &MOVEMENT_CONTROL.backUpSpeed, 0, 512));
-	items.addElement(MenuItem("Inch Spd: ", &MOVEMENT_CONTROL.inchSpeed, 0, 512));
-	items.addElement(MenuItem("Bckup Tm: ", &MOVEMENT_CONTROL.backUpTime, 0, 2000));
-    items.addElement(MenuItem("LRBalance: ", &MOVEMENT_CONTROL.LRBalance, 0.0, 2.0));
-    items.addElement(MenuItem("InertiaCorr; ", &MOVEMENT_CONTROL.inertiaCorrection, 0, 500));
-	items.addElement(MenuItem("MinMotorSpd: ", &MOVEMENT_CONTROL.minMotorSpeed, 0, 300));
+    items.addElement(MenuItem("TF_KP: ", &TAPEFOLLOWER.kP, 0, 512));
+    items.addElement(MenuItem("TF_KD: ", &TAPEFOLLOWER.kD, 0, 2000));
+    items.addElement(MenuItem("TF_SPD: ", &TAPEFOLLOWER.baseSpeed, 0, 1023));
+	items.addElement(MenuItem("TF_MaxErr; ", &TAPEFOLLOWER.maxError, 0, 10));
+	
+    items.addElement(MenuItem("QRDL: ", &TAPEFOLLOWER.leftQRD.threshold, 0, 1023));
+    items.addElement(MenuItem("QRDR: ", &TAPEFOLLOWER.rightQRD.threshold, 0, 1023));
+    items.addElement(MenuItem("QRDOL: ", &TAPEFOLLOWER.leftOutboardQRD.threshold, 0, 1023));
+    items.addElement(MenuItem("QRDOR: ", &TAPEFOLLOWER.rightOutboardQRD.threshold, 0, 1023));
+	
+	items.addElement(MenuItem("MC_MPDT: ", &MOVEMENT_CONTROL.millisPerDegreeTurn, 0, 20));
+	items.addElement(MenuItem("MC_TurnSpd: ", &MOVEMENT_CONTROL.turnSpeed, 0, 512));
+	items.addElement(MenuItem("MC_BckupSpd: ", &MOVEMENT_CONTROL.backUpSpeed, 0, 512));
+	items.addElement(MenuItem("MC_BckupTm: ", &MOVEMENT_CONTROL.backUpTime, 0, 2000));
 }
 
-Menu MENU(TAPEFOLLOWER);
+Menu MENU();
 

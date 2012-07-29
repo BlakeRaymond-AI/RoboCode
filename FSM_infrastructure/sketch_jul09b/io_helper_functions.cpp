@@ -15,7 +15,7 @@ int analogAverage(int pin)
   return total/count;
 }
 
-boolean readStart()
+bool readStart()
 {
   int on=0;
   int off=0;
@@ -29,7 +29,7 @@ boolean readStart()
   return on > off;
 }
 
-boolean readStop()
+bool readStop()
 {
   int on=0;
   int off=0;

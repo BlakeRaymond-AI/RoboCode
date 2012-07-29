@@ -5,61 +5,64 @@
 #include <observer.h>
 #include <pins.h>
 
+enum GripperPosition
+{
+  GRIPPER_OPEN = 0,
+  GRIPPER_CLOSED = 1,
+  GRIPPER_INDETERMINATE = 2
+};
+
 class Gripper
 {
   public:
 	Gripper()
-	: leftClawMicroswitch(GRIPPER_LEFT_SWITCH),
-	rightClawMicroswitch(GRIPPER_RIGHT_SWITCH),
-	positionCounter(0),
-        isClosed(false),
-        isOpen(false),
-        maxPositionCounter(200000)
+	: positionCounter(0),
+	position(OPEN),
+	maxPositionCounter(200000)
 	{
 	
 	}
 
 	void enable()
 	{
-		OBSERVER.addSignal((Signal*)&leftClawMicroswitch);
-		OBSERVER.addSignal((Signal*)&rightClawMicroswitch);
+		OBSERVER.leftClawMicroswitch.enable();
+		OBSERVER.rightClawMicroswitch.enable();
 	}
 	
 	void disable()
 	{
-		OBSERVER.removeSignal((Signal*)&leftClawMicroswitch);
-		OBSERVER.removeSignal((Signal*)&rightClawMicroswitch);
+		OBSERVER.leftClawMicroswitch.disable();
+		OBSERVER.rightClawMicroswitch.disable();
 	}
 	
 	bool switchesClosed()
 	{
-		return leftClawMicroswitch.on() && rightClawMicroswitch.on();
+		return OBSERVER.leftClawMicroswitch.on() && OBSERVER.rightClawMicroswitch.on();
 	}
 	
 	void grip()
 	{
-                isOpen = false;
-		while(!isClosed)
+		position = GRIPPER_INDETERMINATE;
+		while(position != GRIPPER_CLOSED)
 		{
-			leftClawMicroswitch.read();
-			rightClawMicroswitch.read();
+			OBSERVER.leftClawMicroswitch.read();
+			OBSERVER.rightClawMicroswitch.read();
 			
 			if(switchesClosed())
 			{
 				delay(500);
 				motor.stop(GRIPPER_MOTOR);
-				isClosed = true;
+				position = CLOSED;
 			}
 			else if(positionCounter >= maxPositionCounter)
 			{
 				motor.stop(GRIPPER_MOTOR);
-				isClosed = true;
+				position = GRIPPER_CLOSED;
 			}
 			else
 			{
 				closeJaw();
 				++positionCounter;
-				isClosed = false;
 			}
 		}
 	}
@@ -76,30 +79,27 @@ class Gripper
 	
 	void open()
 	{
-                positionCounter *= 1.40;
-                isClosed = false;
-		while(!isOpen)
+		positionCounter *= 1.40; //Correction factor to keep one open/close cycle at zero net change
+		position = GRIPPER_INDETERMINATE;
+		
+		while(position != GRIPPER_OPEN)
 		{
 			if(positionCounter > 0)
 			{
 				openJaw();
 				--positionCounter;
-				isOpen = false;
 			}
 			else
 			{
 				motor.stop(GRIPPER_MOTOR);
-				isOpen = true;
+				position = GRIPPER_OPEN;
 			}
 		}
 	}
 	
-	DigitalSignal leftClawMicroswitch;
-	DigitalSignal rightClawMicroswitch;
+	GripperPosition position;
 	unsigned long positionCounter;
-	boolean isClosed;
-	boolean isOpen;
-        unsigned long maxPositionCounter;
+    unsigned long maxPositionCounter;
 };
 
 extern Gripper GRIPPER;

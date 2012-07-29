@@ -9,142 +9,94 @@ enum INITIAL_MOVEMENT_CONTROL_CONSTANTS
 {
 	initialBackUpSpeed = 512,
 	initialTurnSpeed = 512,
-	initialInchSpeed = 100,
 	initialBackUpTime = 500,
-	initialMinMotorSpeed = 250
 };
 
 const float initialMillisPerDegreeTurn = 3.5;
-const float initialLRBalance = 1.15;
 
 class MovementControl
 {
 	public:
 	MovementControl()
-	: leftBumper(LEFT_BUMPER),
-    rightBumper(RIGHT_BUMPER),
-	backUpSpeed(initialBackUpSpeed),
+	: backUpSpeed(initialBackUpSpeed),
 	turnSpeed(initialTurnSpeed),
-	inchSpeed(initialInchSpeed),
 	backUpTime(initialBackUpTime),
-    millisPerDegreeTurn(initialMillisPerDegreeTurn),
-    LRBalance(initialLRBalance)
+    millisPerDegreeTurn(initialMillisPerDegreeTurn)
 	{}
 
         void enable()
         {
-           OBSERVER.addSignal((Signal*)&leftBumper);
-           OBSERVER.addSignal((Signal*)&rightBumper);
+           OBSERVER.leftBumper.enable();
+           OBSERVER.rightBumper.enable();
         }
         
         void disable()
         {
-           OBSERVER.removeSignal((Signal*)&leftBumper);
-           OBSERVER.removeSignal((Signal*)&rightBumper);
+           OBSERVER.leftBumper.disable();
+           OBSERVER.rightBumper.disable();
         }
 	
 	void backUp()
 	{
-		motor.speed(LEFT_DRIVE_MOTOR, -backUpSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, -backUpSpeed*LRBalance);
+		DRIVE_SYSTEM.drive(-backUpSpeed);
 		delay(backUpTime);
 		
-		motor.speed(LEFT_DRIVE_MOTOR, backUpSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, backUpSpeed*LRBalance);
-		delay(inertiaCorrection);
-		
-		motor.stop(LEFT_DRIVE_MOTOR);
-		motor.stop(RIGHT_DRIVE_MOTOR);
+		DRIVE_SYSTEM.stop();
 	}
 	
 	void turnLeft(int degrees)
 	{
 		int turnTime = degrees * millisPerDegreeTurn;
-		motor.speed(LEFT_DRIVE_MOTOR, -turnSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, turnSpeed*LRBalance);
+		
+		DRIVE_SYSTEM.turnLeft(turnSpeed);		
 		delay(turnTime);
 		
-		motor.speed(LEFT_DRIVE_MOTOR, turnSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, -turnSpeed*LRBalance);
-		delay(inertiaCorrection);
-		
-		motor.stop(LEFT_DRIVE_MOTOR);
-		motor.stop(RIGHT_DRIVE_MOTOR);
+		DRIVE_SYSTEM.stop();
 	}
 	
 	void turnRight(int degrees)
 	{	
 		int turnTime = degrees * millisPerDegreeTurn;
-		motor.speed(LEFT_DRIVE_MOTOR, turnSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, -turnSpeed*LRBalance);
+		
+		DRIVE_SYSTEM.turnRight(turnSpeed);		
 		delay(turnTime);
 		
-		motor.speed(LEFT_DRIVE_MOTOR, -turnSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, turnSpeed*LRBalance);
-		delay(inertiaCorrection);
-		
-		motor.stop(LEFT_DRIVE_MOTOR);
-		motor.stop(RIGHT_DRIVE_MOTOR);
-	}
-	
-	void inchLeft()
-	{
-		motor.speed(LEFT_DRIVE_MOTOR, -inchSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, inchSpeed*LRBalance);
-	}
-	
-	void inchRight()
-	{
-		motor.speed(LEFT_DRIVE_MOTOR, inchSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, -inchSpeed*LRBalance);
+		DRIVE_SYSTEM.stop();
 	}
 	
 	void forwardToTape()
 	{
-		do
+		while(OBSERVER.leftQRD.belowThreshold() && OBSERVER.rightQRD.belowThreshold());	
 		{
-		TAPEFOLLOWER.leftOutboardQRD.read();
-		TAPEFOLLOWER.rightOutboardQRD.read();
+				OBSERVER.leftOutboardQRD.read();
+				OBSERVER.rightOutboardQRD.read();
 		
-		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed*LRBalance);
-		} while(TAPEFOLLOWER.leftQRD.belowThreshold() && TAPEFOLLOWER.rightQRD.belowThreshold());		
-		stop();
+				DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED);
+		} 	
+		DRIVE_SYSTEM.stop();
 	}
 	
 	void forwardToDepot()
 	{
-		do
+		while(!hitDepot())
 		{
-		leftBumper.read();
-		rightBumper.read();
+				OBSERVER.leftBumper.read();
+				OBSERVER.rightBumper.read();
 		
-		motor.speed(LEFT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, TAPEFOLLOWER.baseSpeed*LRBalance);
-		} while(leftBumper.off() && rightBumper.off()); //NO switch closes on contact, bringing digital signal down
+				DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED);
+		}
+		DRIVE_SYSTEM.stop();
 	}
 
-	void stop()
-	{
-		motor.stop(LEFT_DRIVE_MOTOR);
-		motor.stop(RIGHT_DRIVE_MOTOR);
-	}
-
-        bool hitDepot()
-        {
-          return leftBumper.on() || rightBumper.on();
-        }
+		bool hitDepot()
+		{
+				return OBSERVER.leftBumper.on() || OBSERVER.rightBumper.on();
+		}
 
 	int backUpSpeed;
 	int turnSpeed;
 	float millisPerDegreeTurn;
-	int inchSpeed;
 	int backUpTime;
-	DigitalSignal leftBumper;
-        DigitalSignal rightBumper;
-        float LRBalance;
-        int inertiaCorrection;
-	int minMotorSpeed;
 };
 
 extern MovementControl MOVEMENT_CONTROL;

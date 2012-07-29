@@ -7,32 +7,31 @@
 
 enum LifterPosition
 {
-	LOWERED =0,
-	RAISED =1
+	LIFTER_LOWERED =0,
+	LIFTER_RAISED =1,
+	LIFTER_INDETERMINATE =2
 };
 
 class Lifter
 {
 	public:
 		Lifter()
-		:bottomSwitch(LIFTER_SWITCH_BOT),
-		topSwitch(LIFTER_SWITCH_TOP),
-                currentPosition(LOWERED),
-                targetPosition(LOWERED)
+		: currentPosition(LIFTER_LOWERED),
+		targetPosition(LIFTER_LOWERED)
 		{
 		
 		}
 		
 		void enable()
 		{
-			OBSERVER.addSignal((Signal*)&bottomSwitch);
-			OBSERVER.addSignal((Signal*)&topSwitch);
+			OBSERVER.bottomSwitch.enable();
+			OBSERVER.topSwitch.enable();
 		}
 		
 		void disable()
 		{
-			OBSERVER.removeSignal((Signal*)&bottomSwitch);
-			OBSERVER.removeSignal((Signal*)&topSwitch);
+			OBSERVER.bottomSwitch.disable();
+			OBSERVER.topSwitch.disable();
 		}		
 		
 		void setTargetPosition(LifterPosition target)
@@ -44,11 +43,11 @@ class Lifter
 		{
 			updatePosition();
 			
-			if(targetPosition == RAISED && currentPosition == LOWERED) //Higher
+			if(targetPosition == LIFTER_RAISED && currentPosition != LIFTER_RAISED) //Higher
 			{
 				raiseStage();
 			}
-			else if(targetPosition == LOWERED && currentPosition == RAISED)
+			else if(targetPosition == LIFTER_LOWERED && currentPosition != LIFTER_LOWERED)
 			{
 				lowerStage();
 			}
@@ -62,9 +61,6 @@ class Lifter
 		{
 			return currentPosition == targetPosition;
 		}
-		
-		DigitalSignal bottomSwitch;
-		DigitalSignal topSwitch;
 		
 		LifterPosition currentPosition;
 		LifterPosition targetPosition;
@@ -89,11 +85,15 @@ class Lifter
 		{
 			if(bottomSwitch.on())
 			{
-				currentPosition = LOWERED;
+				currentPosition = LIFTER_LOWERED;
 			}
 			else if(topSwitch.on())
 			{
-				currentPosition = RAISED;
+				currentPosition = LIFTER_RAISED;
+			}
+			else
+			{
+				currentPosition = LIFTER_INDETERMINATE;
 			}
 		}	
 };

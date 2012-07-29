@@ -10,14 +10,9 @@
 enum TAPEFOLLOWING_CONSTANTS 
 {
   initialSpeed = 300,
-  initialQRDThresholdL = 500,
-  initialQRDThresholdR = 200,
-  initialQRDThresholdOL = 200,
-  initialQRDThresholdOR = 200,
   initialProportionalGain = 210,
   initialDerivGain = 400,
-  initialMaxError = 3,
-  SHARP_TURN_SPEED = 250
+  initialMaxError = 3
 };
 
 class TapeFollower
@@ -28,10 +23,6 @@ public:
     kD(initialDerivGain),
     kI(0),
     baseSpeed(initialSpeed),
-    leftQRD(LEFT_TAPE_QRD, initialQRDThresholdL),
-    rightQRD(RIGHT_TAPE_QRD, initialQRDThresholdR),
-    leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThresholdOL),
-    rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThresholdOR),
     error(0),
     previousError1(0),
     previousError2(0),
@@ -41,150 +32,68 @@ public:
     leftMotorSpeed(0),
     rightMotorSpeed(0),
     maxError(initialMaxError),
-	turnBias(1)
+    turnBias(1)
     {
 		
     }
 	
-	void stop()
-	{
-		motor.speed(LEFT_DRIVE_MOTOR,0);
-		motor.speed(RIGHT_DRIVE_MOTOR,0);
-	}	
-	
 	void turnAround()
 	{
-                motor.speed(LEFT_DRIVE_MOTOR, -baseSpeed);
-                motor.speed(RIGHT_DRIVE_MOTOR, -baseSpeed);
-                delay(500);
-                motor.speed(LEFT_DRIVE_MOTOR, baseSpeed);
-                motor.speed(RIGHT_DRIVE_MOTOR, baseSpeed);
-                delay(100);
+	  DRIVE_SYSTEM.drive(-baseSpeed);
+	  delay(500);
+	  DRIVE_SYSTEM.stop();
                 
-		while(rightOutboardQRD.belowThreshold()) //Turn left until the left outboard QRD hits tape
-		{
-			motor.speed(LEFT_DRIVE_MOTOR, baseSpeed);
-			motor.speed(RIGHT_DRIVE_MOTOR, -baseSpeed);
-			rightOutboardQRD.read();
-		}
-		while(rightQRD.belowThreshold()) //Turn left slower until the left QRD hits tape
-		{
-			motor.speed(LEFT_DRIVE_MOTOR, 275);
-			motor.speed(RIGHT_DRIVE_MOTOR, -275);
-			rightQRD.read();
-		}
-		while(rightQRD.aboveThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
-		{
-			motor.speed(LEFT_DRIVE_MOTOR, 240);
-			motor.speed(RIGHT_DRIVE_MOTOR, -240);
-			rightQRD.read();
-		}
+	  while(rightOutboardQRD.belowThreshold()) //Turn left until the left outboard QRD hits tape
+	  {
+		  DRIVE_SYSTEM.turnLeft(baseSpeed);
+		  OBSERVER.rightOutboardQRD.read();
+	  }
+	  while(rightQRD.belowThreshold()) //Turn left slower until the left QRD hits tape
+	  {
+		  DRIVE_SYSTEM.turnLeft(275);
+		  OBSERVER.rightQRD.read();
+	  }
+	  while(rightQRD.aboveThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
+	  {
+		  DRIVE_SYSTEM.turnLeft(240);
+		  OBSERVER.rightQRD.read();
+	  }
 	}
 	
 	void enable() //Enable tape following by adding the sensors to the observer
 	{
-		OBSERVER.addSignal(&leftQRD);
-		OBSERVER.addSignal(&rightQRD);
-		OBSERVER.addSignal(&leftOutboardQRD);
-		OBSERVER.addSignal(&rightOutboardQRD);
+		OBSERVER.leftQRD.enable();
+		OBSERVER.rightQRD.enable();
+		OBSERVER.leftOutboardQRD.enable();
+		OBSERVER.rightOutboardQRD.enable();
 	}
 	
 	void disable() //Disable tape following by removing the sensors from the observer
 	{
-		stop();
-		OBSERVER.removeSignal(&leftQRD);
-		OBSERVER.removeSignal(&rightQRD);
-		OBSERVER.removeSignal(&leftOutboardQRD);
-		OBSERVER.removeSignal(&rightOutboardQRD);
-	}
-	
-	void calibrate()
-	{
-		motor.speed(LEFT_DRIVE_MOTOR, baseSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, -baseSpeed);
-		
-		Vector<int> qrdL;
-		Vector<int> qrdR;
-		
-		long start = millis();
-		while((millis() - start) < 2000)
-		{
-			qrdL.addElement(leftQRD.reading);
-			qrdR.addElement(rightQRD.reading);
-			OBSERVER.update();
-			delay(25);
-		}
-		
-		int qrdLMax=0;
-		int qrdRMax=0;
-		int qrdLMin=0;
-		int qrdRMin=0;
-		
-		for(int i=0; i<qrdL.size(); ++i)
-		{
-			if(qrdL.get(i) > qrdLMax)
-				qrdLMax = qrdL.get(i);
-			if(qrdL.get(i) < qrdLMin)
-				qrdLMin = qrdL.get(i);
-			
-			if(qrdR.get(i) > qrdRMax)
-				qrdRMax = qrdR.get(i);
-			if(qrdR.get(i) < qrdRMin)
-				qrdRMin = qrdR.get(i);
-		}
-		
-		leftQRD.threshold = (qrdLMax + qrdLMin) / 2;
-		rightQRD.threshold = (qrdRMax + qrdRMin) / 2;
-		
-		motor.stop_all();
+		DRIVE_SYSTEM.stop();
+		OBSERVER.leftQRD.disable();
+		OBSERVER.rightQRD.disable();
+		OBSERVER.leftOutboardQRD.disable();
+		OBSERVER.rightOutboardQRD.disable();
 	}
 	
 int getError()
 	{
-		if(leftQRD.aboveThreshold() && rightQRD.aboveThreshold()) error = 0;
-		else if(leftQRD.belowThreshold() && rightQRD.aboveThreshold()) error = 1; //Left off tape, turn right
-		else if(leftQRD.aboveThreshold() && rightQRD.belowThreshold()) error = -1; //Right off tape, turn left
-		else if(leftQRD.belowThreshold() && rightQRD.belowThreshold()) //Both off tape -- use history or make a hard turn
+		if(OBSERVER.leftQRD.aboveThreshold() && OBSERVER.rightQRD.aboveThreshold()) error = 0;
+		else if(OBSERVER.leftQRD.belowThreshold() && OBSERVER.rightQRD.aboveThreshold()) error = 1; //Left off tape, turn right
+		else if(OBSERVER.leftQRD.aboveThreshold() && OBSERVER.rightQRD.belowThreshold()) error = -1; //Right off tape, turn left
+		else if(OBSERVER.leftQRD.belowThreshold() && OBSERVER.rightQRD.belowThreshold()) //Both off tape -- use history or make a hard turn
 		{
 			if(previousError1>0) 
 				error = maxError;
 			else if(previousError1<0)
 				error = -maxError;
 			else
-                        {
-                            error = maxError * turnBias;
-                        }
+			  {
+				  error = maxError * turnBias;
+			  }
 				
 		}
-	}
-
-	void limitMotorOutput()
-	{
-		if(leftMotorSpeed < -MAX_MOTOR_SPEED)
-		{
-			leftMotorSpeed = -MAX_MOTOR_SPEED;
-		}
-		else if(leftMotorSpeed > MAX_MOTOR_SPEED)
-		{
-			leftMotorSpeed = MAX_MOTOR_SPEED;
-		}
-
-		if(rightMotorSpeed < -MAX_MOTOR_SPEED)
-		{
-			rightMotorSpeed = -MAX_MOTOR_SPEED;
-		}
-		else if(rightMotorSpeed > MAX_MOTOR_SPEED)
-		{
-			rightMotorSpeed = MAX_MOTOR_SPEED;
-		}
-	}
-
-	void driveMotors()
-	{	
-		limitMotorOutput();
-
-		motor.speed(LEFT_DRIVE_MOTOR, leftMotorSpeed);
-		motor.speed(RIGHT_DRIVE_MOTOR, rightMotorSpeed);
 	}
 
   void followTape()
@@ -204,7 +113,7 @@ int getError()
 		rightMotorSpeed = baseSpeed;
 	}
 
-	driveMotors();
+	DRIVE_SYSTEM.drive(leftMotorSpeed, rightMotorSpeed);
 
 	++count;
 
@@ -223,37 +132,28 @@ int getError()
   {
     LCD.clear();
     LCD.home();
-    LCD.print("L:" + String(leftOutboardQRD.reading) + " ");
-    LCD.print("R:" + String(rightOutboardQRD.reading));
+    LCD.print("L:" + String(OBSERVER.leftOutboardQRD.reading) + " ");
+    LCD.print("R:" + String(OBSERVER.rightOutboardQRD.reading));
     LCD.setCursor(0,1);
-    LCD.print("L:" + String(leftQRD.reading) + " ");
-    LCD.print("R:" + String(rightQRD.reading));
+    LCD.print("L:" + String(OBSERVER.leftQRD.reading) + " ");
+    LCD.print("R:" + String(OBSERVER.rightQRD.reading));
   }
   
-  AnalogSignal leftQRD;
-  AnalogSignal rightQRD;
-  AnalogSignal leftOutboardQRD;
-  AnalogSignal rightOutboardQRD;
-
-  unsigned long time;
-  unsigned long lastTime;
   char error;
   char previousError1;
   char previousError2;
+  
+  int correction;  
   int previousCorrection;
-  int correction;
+  
   int maxError;
-  int count; 
+  int count;
   
   char turnBias;
   
   int leftMotorSpeed;
   int rightMotorSpeed;
   
-  int QRDThresholdL;
-  int QRDThresholdR;
-  int QRDThresholdOL;
-  int QRDThresholdOR;
   int kP;
   int kD;
   int kI;

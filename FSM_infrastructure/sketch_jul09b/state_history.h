@@ -21,6 +21,4 @@ class StateHistory
                 FSM&  stateMachine;
 };
 
-extern StateHistory STATE_HISTORY;
-
 #endif

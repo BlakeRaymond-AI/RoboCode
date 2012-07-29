@@ -14,51 +14,12 @@
 #include <LiquidCrystal.h> //   ***** from 253 template file
 #include <Servo253.h>      //   ***** from 253 template file
 
-void travelToDepot_Enter();
-void travelToDepot_Update();
-void travelToDepot_Exit();
-
-void dropBlock_Enter();
-void dropBlock_Update();
-void dropBlock_Exit();
-
-void findBlock_Enter();
-void findBlock_Update();
-void findBlock_Exit();
-
-void findTape_Enter();
-void findTape_Update();
-void findTape_Exit();
-
-void dropBlock_Enter();
-void dropBlock_Exit();
-void dropBlock_Update();
-
-void findBlockInBuildArea_Enter();
-void findBlockInBuildArea_Update();
-void findBlockInBuildArea_Exit();
-
-/*
-void travelFromDepotToFirstTurn_Enter();
-void travelFromDepotToFirstTurn_Update();
-void travelFromDepotToFirstTurn_Exit();
-
-void travelFromFirstTurnToBuildArea_Enter();
-void travelFromFirstTurnToBuildArea_Update();
-void travelFromFirstTurnToBuildArea_Exit();
-*/
-
 extern State TravelToDepot;
-//extern State TravelFromDepotToFirstTurn;
-//extern State TravelFromFirstTurnToBuildArea;
 extern State FindBlock;
+extern State TravelFromDepot;
 extern State DropBlock;
-extern State FindTape;
-extern State FindBlockInBuildArea;
+extern State StackBlocks;
 
 extern FSM robotStateMachine;
-extern StateHistory STATE_HISTORY;
-
-
 
 #endif

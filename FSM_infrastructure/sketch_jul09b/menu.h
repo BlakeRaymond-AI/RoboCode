@@ -79,11 +79,11 @@ private:
 class Menu
 {
 public:
-  Menu(TapeFollower &tapeFollower);
+  Menu();
 
   void open()
   {
-    tapeFollower.stop();
+	motor.stop_all();
 	delay(500);
 
     //Press stop to exit the menu 
@@ -134,7 +134,6 @@ public:
   }
 
   Vector<MenuItem> items;
-  TapeFollower &tapeFollower;
   int index;
 };
 

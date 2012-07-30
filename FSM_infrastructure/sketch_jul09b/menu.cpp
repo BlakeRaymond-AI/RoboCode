@@ -17,7 +17,14 @@ Menu::Menu()
 	items.addElement(MenuItem("MC_TurnSpd: ", &MOVEMENT_CONTROL.turnSpeed, 0, 512));
 	items.addElement(MenuItem("MC_BckupSpd: ", &MOVEMENT_CONTROL.backUpSpeed, 0, 512));
 	items.addElement(MenuItem("MC_BckupTm: ", &MOVEMENT_CONTROL.backUpTime, 0, 2000));
+	
+	items.addElement(MenuItem("RF_GapThrsh: ", &RANGEFINDERS.gapThreshold, 0, 1023));
+	items.addElement(MenuItem("RF_EdgThrsh: ", &RANGEFINDERS.edgeThreshold, 0, 512));
+	items.addElement(MenuItem("RF_MaxPanTime: ", &RANGEFINDERS.maxPanTime, 0, 10000));
 }
 
 Menu MENU();
 
+    int gapThreshold;
+    int edgeThreshold;
+    int maxPanTime;

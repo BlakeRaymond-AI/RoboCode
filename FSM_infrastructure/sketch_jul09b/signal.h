@@ -76,12 +76,47 @@ public:
 	bool reading;
 };
 
-class Rangefinder : public Signal
+class Rangefinder : public AnalogSignal
 {
+		public:
+		Rangefinder(int pin, int threshold)
+		: AnalogSignal(pin, threshold)
+		{
+		
+		}
+		
 		virtual void read()
 		{
-				lastReading = reading;
-				reading = analogAverage(pin);
+				if(enabled)
+				{
+						lastReading = reading;
+						reading = analogAverage(pin);
+				}				
+		}
+		
+		bool edgeDetected(int &edgeThreshold)
+		{
+				return abs(reading - lastReading) > edgeThreshold;
+		}
+		
+		bool edgeOff(int &edgeThreshold)
+		{
+				return (lastReading - reading) > edgeThreshold;
+		}
+		
+		bool edgeOn(int &edgeThreshold)
+		{
+				return (reading - lastReading) > edgeThreshold;
+		}
+		
+		bool belowThreshold(int &threshold)
+		{
+				return reading < threshold;
+		}
+		
+		bool aboveThreshold(int &threshold)
+		{
+				return reading >= threshold;
 		}
 		
 		int lastReading;

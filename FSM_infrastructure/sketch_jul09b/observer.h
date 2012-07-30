@@ -10,6 +10,7 @@ enum QRD_THRESHOLDS
   initialQRDThresholdR = 200,
   initialQRDThresholdOL = 200,
   initialQRDThresholdOR = 200,
+  initialRangefinderThreshold = 100
 };
   
 class Observer
@@ -27,7 +28,9 @@ class Observer
 		rightBumper(RIGHT_BUMPER),
 		centreBumper(CENTRE_BUMPER),
 		slideTopSwitch(SLIDE_TOP_SWITCH),
-		slideBottomSwitch(SLIDE_BOTTOM_SWITCH)
+		slideBottomSwitch(SLIDE_BOTTOM_SWITCH),
+		leftRangefinder(LEFT_RANGEFINDER, initialRangefinderThreshold),
+		rightRangefinder(RIGHT_RANGEFINDER, initialRangefinderThreshold)
 		{}
 	
 	void update()
@@ -58,6 +61,8 @@ class Observer
     DigitalSignal centreBumper;
     DigitalSignal slideTopSwitch;
     DigitalSignal slideBottomSwitch;
+	Rangefinder leftRangefinder;
+	Rangefinder rightRangefinder;
 };
 
 extern Observer OBSERVER;

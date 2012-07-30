@@ -1,13 +1,17 @@
 #include "WProgram.h"
 #include <state_machine.h>
 
-State TravelToDepot = State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
-State FindBlock = State(findBlock_Enter, findBlock_Update, findBlock_Exit);
-State TravelFromDepot = State(travelFromDepot_Enter, travelFromDepot_Update, travelFromDepot_Exit);
-State DropBlock = State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
-State StackBlocks = State(stackBlocks_Enter, stackBlocks_Update, stackBlocks_Exit);
+State TravelToDepot 		= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
+State FindBlockInDepot 		= State(findBlockInDepot_Enter, findBlockInDepot_Update, findBlockInDepot_Exit);
+State FindBlockInBuildArea  = State(findBlockInBuildArea_Enter, findBlockInBuildArea_Update, findBlockInBuildArea_Exit);
+State TravelFromDepot 		= State(travelFromDepot_Enter, travelFromDepot_Update, travelFromDepot_Exit);
+State DropBlock 			= State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
+State StackBlocks 			= State(stackBlocks_Enter, stackBlocks_Update, stackBlocks_Exit);
 
 FSM robotStateMachine(TravelToDepot);
+
+typedef char short;
+short blockCount = 0;
 
 void travelToDepot_Enter()
 {
@@ -25,33 +29,28 @@ void travelToDepot_Exit()
 void travelToDepot_Update()
 {
     TAPEFOLLOWER.followTape();
+	
     if(MOVEMENT_CONTROL.leftBumper.on() || MOVEMENT_CONTROL.rightBumper.on())
     {
 		DRIVE_SYSTEM.stop();
 		MOVEMENT_CONTROL.backUp();
-		robotStateMachine.transitionTo(FindBlock);
-        LCD.clear();
-        LCD.print("Finding block");
+		robotStateMachine.transitionTo(FindBlockInDepot);
     }
 }
 
-void findBlock_Enter()
+void findBlockInDepot_Enter()
 {
       MOVEMENT_CONTROL.enable();
 		GRIPPER.enable();
 		
-		//RANGEFINDERS.enable();
-		
-		MOVEMENT_CONTROL.turnLeft(45);
+		RANGEFINDERS.enable();
 }
 
-void findBlock_Update()
+void findBlockInDepot_Update()
 {
 	//pan left and right, looking for a gap
 
-	DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
-	
-	if(RANGEFINDERS.isGap())
+	if(RANGEFINDERS.panLeftUntilGap() || RANGEFINDERS.panRightUntilGap() || RANGEFINDERS.panRightUntilGap() || RANGEFINDERS.panLeftUntilGap())
 	{
 		DRIVE_SYSTEM.stop();
 		
@@ -65,62 +64,80 @@ void findBlock_Update()
 				LIFTER.enable();
 				LIFTER.update();
 				delay(1000);
-				robotStateMachine.transitionTo(TravelFromDepot)
+				robotStateMachine.transitionTo(TravelFromDepot);
 		}
 		else
 		{
 				//back up and try again
+				GRIPPER.open();
 				MOVEMENT_CONTROL.backUp();
-				MOVEMENT_CONTROL.turnLeft(45);
 		}
 	}
-	else if(//bothTapesTried == false)
-	{
-		//find the other tape, try again
-		MOVEMENT_CONTROL.turnRight(45);
-		
-		TAPEFOLLOWER.enable();
-		MOVEMENT_CONTROL.forwardToTape();
-		TAPEFOLLOWER.disable();
-		
-		MOVEMENT_CONTROL.turnLeft(90);
-		MOVEMENT_CONTROL.forwardToDepot();
-		MOVEMENT_CONTROL.backUp();
-		MOVEMENT_CONTROL.turnLeft(45);		
-	}
-	else //give up
-	{
-		DRIVE_SYSTEM.stop();
-		LCD.clear();
-		LCD.home();
-		LCD.print("NO BLOCKS FOUND");
-		while(true)
-		{
-				if(readStart())
-				{
-						robotStateMachine.transitionTo(TravelToDepot);
-						break;
-				}
-				delay(500);
-		}
-    }			   
 }
 
-void findBlock_Exit()
+void findBlockInDepot_Exit()
 {
 	MOVEMENT_CONTROL.disable();
 }
 
 void travelFromDepot_Enter()
 {
+		TAPEFOLLOWER.enable();
+		TAPEFOLLOWER.turnAround();
 }
 
 void travelFromDepot_Update()
 {
+		TAPEFOLLOWER.followTape();
+
+		if(blockCount == 0)
+		{
+				if(OBSERVER.leftOutboardQRD.aboveThreshold() && OBSERVER.rightOutboardQRD.aboveThreshold())
+				{
+						DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED);
+						delay(1000);
+						DRIVE_SYSTEM.stop();
+						
+						robotStateMachine.transitionTo(DropBlock);
+				}
+		}
+		else //second or higher block
+		{
+			robotStateMachine.transitionTo(FindBlockInBuildArea);
+		}
 }
 
 void travelFromDepot_Exit()
 {
+		TAPEFOLLOWER.disable();
+}
+
+void findBlockInBuildArea_Enter()
+{
+		RANGEFINDERS.enable();
+}
+
+void findBlockInBuildArea_Update()
+{
+		RANGEFINDERS.moveToBlockInBuildArea();
+		
+		if(OBSERVER.centreBumper.on())
+		{
+				DRIVE_SYSTEM.stop();
+				
+				//back up
+				DRIVE_SYSTEM.drive(-SLOW_MOTOR_SPEED);
+				delay(MOVEMENT_CONTROL.backUpTime);
+				DRIVE_SYSTEM.stop();				
+				
+				//drop the block
+				robotStateMachine.transitionTo(DropBlock);
+		}
+}
+
+void findBlockInBuildArea_Exit()
+{
+		RANGEFINDERS.disable();
 }
 
 void dropBlock_Enter()
@@ -130,12 +147,22 @@ void dropBlock_Enter()
 
 void dropBlock_Update()
 {
-	if(LIFTER.ready())
-	{
+		LIFTER.setTargetPosition(LOWERED);
+		LIFTER.update();
+		while(!LIFTER.ready())
+		{
+				OBSERVER.update();
+				LIFTER.update();
+		}
 		GRIPPER.open();
+		++blockCount;
+		
+		//back up
 		MOVEMENT_CONTROL.backUp();
+		
+		TAPEFOLLOWER.turnAround();
+		
 		robotStateMachine.transitionTo(TravelToDepot);
-	}
 }
 
 void dropBlock_Exit()
@@ -143,3 +170,17 @@ void dropBlock_Exit()
 
 }
 
+void stackBlocks_Enter()
+{
+
+}
+
+void stackBlocks_Update()
+{
+
+}
+
+void stackBlocks_Exit()
+{
+
+}

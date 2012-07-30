@@ -15,7 +15,8 @@
 #include <Servo253.h>      //   ***** from 253 template file
 
 extern State TravelToDepot;
-extern State FindBlock;
+extern State FindBlockInDepot;
+extern State FindBlockInBuildArea;
 extern State TravelFromDepot;
 extern State DropBlock;
 extern State StackBlocks;

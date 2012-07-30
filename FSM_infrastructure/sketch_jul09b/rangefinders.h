@@ -2,6 +2,9 @@
 #define RANGEFINDERS_HEADER_GUARD
 
 #include <signal.h>
+#include <observer.h>
+#include <pins.h>
+#include <drive_system.h>
 
 class Rangefinders
 {
@@ -103,7 +106,7 @@ class Rangefinders
         {
             DRIVE_SYSTEM.turnLeft(SLOW_MOTOR_SPEED);
             OBSERVER.update();
-            if((millis() - startTime) > maxPanTime;)
+            if((millis() - startTime) > maxPanTime)
             {
                 DRIVE_SYSTEM.stop();
                 return false;
@@ -117,7 +120,7 @@ class Rangefinders
     {
         while(OBSERVER.leftBumper.off() && OBSERVER.rightBumper.off() && OBSERVER.gripperCentreSwitch.off())
         {
-            DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED);
+            DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED, MEDIUM_MOTOR_SPEED);
             
             if(OBSERVER.leftRangefinder.edgeOn(edgeThreshold))
             {
@@ -134,12 +137,12 @@ class Rangefinders
     
     void moveToBlockInBuildArea() //remember to handle the centre bumper externally
     {
-        if(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.belowThreshold(gapThreshold))
+        if(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.belowThreshold(gapThreshold)) //doesn't see anything
         {
             if(blockTracked == true)
             {
                 //move forward
-                DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED);
+                DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED);
             }
             else
             {
@@ -172,7 +175,7 @@ class Rangefinders
             blockTracked = true;
         }
         
-        else if(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.aboveThreshold(gapThreshold)
+        else if(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.aboveThreshold(gapThreshold))
         {
             //turn right until gap
             

@@ -24,14 +24,14 @@ class Lifter
 		
 		void enable()
 		{
-			OBSERVER.bottomSwitch.enable();
-			OBSERVER.topSwitch.enable();
+			OBSERVER.slideBottomSwitch.enable();
+			OBSERVER.slideTopSwitch.enable();
 		}
 		
 		void disable()
 		{
-			OBSERVER.bottomSwitch.disable();
-			OBSERVER.topSwitch.disable();
+			OBSERVER.slideBottomSwitch.disable();
+			OBSERVER.slideTopSwitch.disable();
 		}		
 		
 		void setTargetPosition(LifterPosition target)
@@ -83,11 +83,11 @@ class Lifter
 		
 		void updatePosition()
 		{
-			if(bottomSwitch.on())
+			if(OBSERVER.slideBottomSwitch.on())
 			{
 				currentPosition = LIFTER_LOWERED;
 			}
-			else if(topSwitch.on())
+			else if(OBSERVER.slideTopSwitch.on())
 			{
 				currentPosition = LIFTER_RAISED;
 			}

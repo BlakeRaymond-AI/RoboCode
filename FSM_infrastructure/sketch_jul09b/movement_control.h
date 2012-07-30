@@ -38,7 +38,7 @@ class MovementControl
 	
 	void backUp()
 	{
-		DRIVE_SYSTEM.drive(-backUpSpeed);
+		DRIVE_SYSTEM.drive(-backUpSpeed, -backUpSpeed);
 		delay(backUpTime);
 		
 		DRIVE_SYSTEM.stop();
@@ -71,7 +71,7 @@ class MovementControl
 				OBSERVER.leftOutboardQRD.read();
 				OBSERVER.rightOutboardQRD.read();
 		
-				DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED);
+				DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED, MEDIUM_MOTOR_SPEED);
 		} 	
 		DRIVE_SYSTEM.stop();
 	}
@@ -83,7 +83,7 @@ class MovementControl
 				OBSERVER.leftBumper.read();
 				OBSERVER.rightBumper.read();
 		
-				DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED);
+				DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED, MEDIUM_MOTOR_SPEED);
 		}
 		DRIVE_SYSTEM.stop();
 	}

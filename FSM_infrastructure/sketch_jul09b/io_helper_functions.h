@@ -7,8 +7,8 @@
 
 extern int analogAverage(int pin);
 
-extern boolean readStart();
+extern bool readStart();
 
-extern boolean readStop();
+extern bool readStop();
 
 #endif

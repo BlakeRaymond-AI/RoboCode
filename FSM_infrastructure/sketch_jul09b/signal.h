@@ -17,6 +17,11 @@ public:
 	{
 		enabled = true;
 	}
+
+        void disable()
+        {
+                enabled = false;
+        }
 	
 	int pin;
 	bool enabled;

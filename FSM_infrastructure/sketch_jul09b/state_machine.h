@@ -21,6 +21,30 @@ extern State TravelFromDepot;
 extern State DropBlock;
 extern State StackBlocks;
 
+void travelToDepot_Enter();
+void travelToDepot_Update();
+void travelToDepot_Exit();
+
+void findBlockInDepot_Enter();
+void findBlockInDepot_Update();
+void findBlockInDepot_Exit();
+
+void findBlockInBuildArea_Enter();
+void findBlockInBuildArea_Update();
+void findBlockInBuildArea_Exit();
+
+void travelFromDepot_Enter();
+void travelFromDepot_Update();
+void travelFromDepot_Exit();
+
+void dropBlock_Enter();
+void dropBlock_Update();
+void dropBlock_Exit();
+
+void stackBlocks_Enter();
+void stackBlocks_Update(); 
+void stackBlocks_Exit();
+
 extern FSM robotStateMachine;
 
 #endif

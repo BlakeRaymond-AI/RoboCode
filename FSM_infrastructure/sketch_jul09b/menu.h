@@ -4,6 +4,7 @@
 #include <io_helper_functions.h>
 #include <tape_follower.h>
 #include <movement_control.h>
+#include <rangefinders.h>
 
 class MenuItem
 {

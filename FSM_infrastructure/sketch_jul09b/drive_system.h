@@ -1,11 +1,17 @@
 #ifndef DRIVE_SYSTEM_HEADER_GUARD
 #define DRIVE_SYSTEM_HEADER_GUARD
 
+#include <pins.h>
+#include <phys253.h>       //   ***** from 253 template file
+
 class ManagedMotor
 {
 public:
-    ManagedMotor(int pin)
-    : pin(pin)
+    ManagedMotor(int pin, float correction)
+    : pin(pin),
+    correction(correction),
+    speed(0),
+    lastSpeed(0)
     {
         
     }
@@ -31,7 +37,6 @@ public:
         motor.speed(pin, -lastSpeed);
     }
     
-private:
     int pin;
     float correction;
     int speed;
@@ -42,9 +47,9 @@ class DriveSystem
 {
 public:
     DriveSystem()
-    : leftMotor(LEFT_DRIVE_MOTOR),
-    rightMotor(RIGHT_DRIVE_MOTOR),
-    inertiaCorrectionTime(150)
+    : leftMotor(LEFT_DRIVE_MOTOR, 1.0),
+    rightMotor(RIGHT_DRIVE_MOTOR, 1.0),
+    inertiaCorrection(1.0)
     {
         
     }
@@ -78,7 +83,7 @@ public:
     
     ManagedMotor leftMotor;
     ManagedMotor rightMotor;
-    int inertiaCorrection;
+    float inertiaCorrection;
     
 private:
 };

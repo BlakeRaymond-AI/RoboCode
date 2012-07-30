@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <observer.h>
 #include <pins.h>
+#include <drive_system.h>
 
 enum TAPEFOLLOWING_CONSTANTS 
 {
@@ -39,21 +40,21 @@ public:
 	
 	void turnAround()
 	{
-	  DRIVE_SYSTEM.drive(-baseSpeed);
+	  DRIVE_SYSTEM.drive(-baseSpeed, -baseSpeed);
 	  delay(500);
 	  DRIVE_SYSTEM.stop();
                 
-	  while(rightOutboardQRD.belowThreshold()) //Turn left until the left outboard QRD hits tape
+	  while(OBSERVER.rightOutboardQRD.belowThreshold()) //Turn left until the left outboard QRD hits tape
 	  {
 		  DRIVE_SYSTEM.turnLeft(baseSpeed);
 		  OBSERVER.rightOutboardQRD.read();
 	  }
-	  while(rightQRD.belowThreshold()) //Turn left slower until the left QRD hits tape
+	  while(OBSERVER.rightQRD.belowThreshold()) //Turn left slower until the left QRD hits tape
 	  {
 		  DRIVE_SYSTEM.turnLeft(275);
 		  OBSERVER.rightQRD.read();
 	  }
-	  while(rightQRD.aboveThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
+	  while(OBSERVER.rightQRD.aboveThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
 	  {
 		  DRIVE_SYSTEM.turnLeft(240);
 		  OBSERVER.rightQRD.read();

@@ -17,7 +17,7 @@ class Gripper
   public:
 	Gripper()
 	: positionCounter(0),
-	position(OPEN),
+	position(GRIPPER_OPEN),
 	maxPositionCounter(200000)
 	{
 	
@@ -25,19 +25,19 @@ class Gripper
 
 	void enable()
 	{
-		OBSERVER.leftClawMicroswitch.enable();
-		OBSERVER.rightClawMicroswitch.enable();
+		OBSERVER.gripperLeftSwitch.enable();
+		OBSERVER.gripperRightSwitch.enable();
 	}
 	
 	void disable()
 	{
-		OBSERVER.leftClawMicroswitch.disable();
-		OBSERVER.rightClawMicroswitch.disable();
+		OBSERVER.gripperLeftSwitch.disable();
+		OBSERVER.gripperRightSwitch.disable();
 	}
 	
 	bool switchesClosed()
 	{
-		return OBSERVER.leftClawMicroswitch.on() && OBSERVER.rightClawMicroswitch.on();
+		return OBSERVER.gripperLeftSwitch.on() && OBSERVER.gripperRightSwitch.on();
 	}
 	
 	void grip()
@@ -45,14 +45,14 @@ class Gripper
 		position = GRIPPER_INDETERMINATE;
 		while(position != GRIPPER_CLOSED)
 		{
-			OBSERVER.leftClawMicroswitch.read();
-			OBSERVER.rightClawMicroswitch.read();
+			OBSERVER.gripperLeftSwitch.read();
+			OBSERVER.gripperRightSwitch.read();
 			
 			if(switchesClosed())
 			{
 				delay(500);
 				motor.stop(GRIPPER_MOTOR);
-				position = CLOSED;
+				position = GRIPPER_CLOSED;
 			}
 			else if(positionCounter >= maxPositionCounter)
 			{
@@ -99,7 +99,7 @@ class Gripper
 	
 	GripperPosition position;
 	unsigned long positionCounter;
-    unsigned long maxPositionCounter;
+        unsigned long maxPositionCounter;
 };
 
 extern Gripper GRIPPER;

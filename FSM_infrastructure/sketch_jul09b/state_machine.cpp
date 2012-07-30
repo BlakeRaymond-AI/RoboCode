@@ -10,8 +10,7 @@ State StackBlocks 			= State(stackBlocks_Enter, stackBlocks_Update, stackBlocks_
 
 FSM robotStateMachine(TravelToDepot);
 
-typedef char short;
-short blockCount = 0;
+char blockCount = 0;
 
 void travelToDepot_Enter()
 {
@@ -30,7 +29,7 @@ void travelToDepot_Update()
 {
     TAPEFOLLOWER.followTape();
 	
-    if(MOVEMENT_CONTROL.leftBumper.on() || MOVEMENT_CONTROL.rightBumper.on())
+    if(OBSERVER.leftBumper.on() || OBSERVER.rightBumper.on())
     {
 		DRIVE_SYSTEM.stop();
 		MOVEMENT_CONTROL.backUp();
@@ -94,7 +93,7 @@ void travelFromDepot_Update()
 		{
 				if(OBSERVER.leftOutboardQRD.aboveThreshold() && OBSERVER.rightOutboardQRD.aboveThreshold())
 				{
-						DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED);
+						DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED);
 						delay(1000);
 						DRIVE_SYSTEM.stop();
 						
@@ -126,7 +125,7 @@ void findBlockInBuildArea_Update()
 				DRIVE_SYSTEM.stop();
 				
 				//back up
-				DRIVE_SYSTEM.drive(-SLOW_MOTOR_SPEED);
+				DRIVE_SYSTEM.drive(-SLOW_MOTOR_SPEED, -SLOW_MOTOR_SPEED);
 				delay(MOVEMENT_CONTROL.backUpTime);
 				DRIVE_SYSTEM.stop();				
 				
@@ -147,7 +146,7 @@ void dropBlock_Enter()
 
 void dropBlock_Update()
 {
-		LIFTER.setTargetPosition(LOWERED);
+		LIFTER.setTargetPosition(LIFTER_LOWERED);
 		LIFTER.update();
 		while(!LIFTER.ready())
 		{

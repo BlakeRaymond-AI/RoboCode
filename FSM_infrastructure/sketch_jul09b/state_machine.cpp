@@ -51,11 +51,11 @@ void findBlock_Update()
 
 	DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
 	
-	if(//left rangefinder.gap && right rangefinder.gap)
+	if(RANGEFINDERS.isGap())
 	{
 		DRIVE_SYSTEM.stop();
 		
-		//RANGEFINDERS.moveToBlock();
+		RANGEFINDERS.moveToBlockInDepot();
 		
 		GRIPPER.grip();
 		
@@ -103,8 +103,7 @@ void findBlock_Update()
 				}
 				delay(500);
 		}
-    }
-			   
+    }			   
 }
 
 void findBlock_Exit()

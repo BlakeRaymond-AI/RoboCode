@@ -49,16 +49,21 @@ public:
 		  DRIVE_SYSTEM.turnLeft(baseSpeed);
 		  OBSERVER.rightOutboardQRD.read();
 	  }
+          DRIVE_SYSTEM.stop();
+          
 	  while(OBSERVER.rightQRD.belowThreshold()) //Turn left slower until the left QRD hits tape
 	  {
 		  DRIVE_SYSTEM.turnLeft(275);
 		  OBSERVER.rightQRD.read();
 	  }
+          DRIVE_SYSTEM.stop();
+
 	  while(OBSERVER.rightQRD.aboveThreshold()) //Inch left until the left QRD is just off the tape (and the robot is straight)
 	  {
 		  DRIVE_SYSTEM.turnLeft(240);
 		  OBSERVER.rightQRD.read();
 	  }
+          DRIVE_SYSTEM.stop();
 	}
 	
 	void enable() //Enable tape following by adding the sensors to the observer
@@ -99,6 +104,7 @@ int getError()
 
   void followTape()
   {
+      enable();
     getError();
     
 	correction = previousCorrection + kP * (error - previousError1) + kD * (error - 2 * previousError1 + previousError2) + kI * (error + previousError1) / 2.0;

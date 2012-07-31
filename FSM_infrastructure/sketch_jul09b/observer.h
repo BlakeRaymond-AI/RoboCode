@@ -19,8 +19,8 @@ class Observer
 		Observer()
 		: leftQRD(LEFT_TAPE_QRD, initialQRDThresholdL),
 		rightQRD(RIGHT_TAPE_QRD, initialQRDThresholdR),
-		leftOutboardQRD(LEFT_OUTBOARD_QRD, initialQRDThresholdOL),
-		rightOutboardQRD(RIGHT_OUTBOARD_QRD, initialQRDThresholdOR),
+		leftOutboardQRD(4, initialQRDThresholdOL),
+		rightOutboardQRD(5, initialQRDThresholdOR),
 		gripperLeftSwitch(GRIPPER_LEFT_SWITCH),
 		gripperRightSwitch(GRIPPER_RIGHT_SWITCH),
 		gripperCentreSwitch(GRIPPER_CENTRE_SWITCH),

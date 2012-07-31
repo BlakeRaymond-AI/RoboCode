@@ -21,6 +21,13 @@ extern State TravelFromDepot;
 extern State DropBlock;
 extern State StackBlocks;
 
+extern State TestState_DriveStraight;
+extern State TestState_DriveReverse;
+extern State TestState_ForwardAndStop;
+extern State TestState_FindBlockInBuildArea;
+extern State TestState_FindBlockInDepot;
+extern State TestState_TapeFollow;
+
 void travelToDepot_Enter();
 void travelToDepot_Update();
 void travelToDepot_Exit();
@@ -44,6 +51,13 @@ void dropBlock_Exit();
 void stackBlocks_Enter();
 void stackBlocks_Update(); 
 void stackBlocks_Exit();
+
+void test_DriveStraight();
+void test_DriveReverse();
+void test_ForwardAndStop();
+void test_FindBlockInBuildArea();
+void test_FindBlockInDepot();
+void test_TapeFollow();
 
 extern FSM robotStateMachine;
 

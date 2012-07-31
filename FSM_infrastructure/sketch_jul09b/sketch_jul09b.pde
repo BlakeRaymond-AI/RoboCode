@@ -9,27 +9,36 @@
 #include <signal.h>
 #include <tape_follower.h>
 #include <state_machine.h>
+#include <state_controller.h>
 
 void setup() 
 { 
-  MOVEMENT_CONTROL.enable();
+  //MOVEMENT_CONTROL.enable();
   TAPEFOLLOWER.enable();
   TAPEFOLLOWER.turnBias = 1;
   
-  LIFTER.enable();
-  LIFTER.setTargetPosition(LIFTER_LOWERED);
-  GRIPPER.enable();
+  //LIFTER.enable();
+  //LIFTER.setTargetPosition(LIFTER_LOWERED);
+  //GRIPPER.enable();
+  
+  //RANGEFINDERS.enable();
 }
+
+int gCount =0;
 
 void loop() 
 {
   OBSERVER.update();
-  LIFTER.update();
+  //LIFTER.update();
   robotStateMachine.update();
   
   if(readStart())
   {
      MENU.open();
+  }
+  if(readStop())
+  {
+    STATECONTROLLER.open();
   }
 }
 

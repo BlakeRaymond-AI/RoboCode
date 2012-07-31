@@ -10,8 +10,17 @@ class Rangefinders
 {
     public:
     Rangefinders()
-    : blockTracked(false)
+    : blockTracked(false),
+    cycleCount(0)
     {}
+    
+    void display()
+    {
+        LCD.clear();
+        LCD.home();
+        LCD.print("L: " + String(OBSERVER.leftRangefinder.reading));
+        LCD.print(" R: " + String(OBSERVER.rightRangefinder.reading));
+    }
     
     bool isGap()
     {
@@ -133,6 +142,13 @@ class Rangefinders
             
             OBSERVER.update();
         }
+        
+        ++cycleCount;
+        if(cycleCount == 100)
+        {
+            display();
+            cycleCount = 0;
+        }
     }
     
     void moveToBlockInBuildArea() //remember to handle the centre bumper externally
@@ -147,7 +163,12 @@ class Rangefinders
             else
             {
                 //search for the block
-                if(panRightUntilEitherHigh() == false && panLeftUntilEitherHigh() == false && panLeftUntilEitherHigh() == false && panRightUntilEitherHigh() == false)
+                if(panRightUntilEitherHigh() || panLeftUntilEitherHigh() || panLeftUntilEitherHigh() || panRightUntilEitherHigh())
+                {
+                    //found it
+                    DRIVE_SYSTEM.stop();                
+                }
+                else
                 {
                     //couldn't find it; lower the threshold and try again
                     LCD.clear();
@@ -156,12 +177,7 @@ class Rangefinders
                     LCD.setCursor(1,0);
                     LCD.print("BLOCK NOT FOUND");
                     delay(1000);
-                    gapThreshold -= 25;                    
-                }
-                else
-                {
-                    //found it
-                    DRIVE_SYSTEM.stop();
+                    gapThreshold -= 25;    
                 }
             }
         }
@@ -208,6 +224,8 @@ class Rangefinders
     int edgeThreshold;
     int maxPanTime;
     bool blockTracked;
+    
+    int cycleCount;
 };
 
 extern Rangefinders RANGEFINDERS;

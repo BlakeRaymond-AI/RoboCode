@@ -3,10 +3,18 @@
 
 State TravelToDepot 		= State(travelToDepot_Enter, travelToDepot_Update, travelToDepot_Exit);
 State FindBlockInDepot 		= State(findBlockInDepot_Enter, findBlockInDepot_Update, findBlockInDepot_Exit);
-State FindBlockInBuildArea  = State(findBlockInBuildArea_Enter, findBlockInBuildArea_Update, findBlockInBuildArea_Exit);
+State FindBlockInBuildArea      = State(findBlockInBuildArea_Enter, findBlockInBuildArea_Update, findBlockInBuildArea_Exit);
 State TravelFromDepot 		= State(travelFromDepot_Enter, travelFromDepot_Update, travelFromDepot_Exit);
-State DropBlock 			= State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
-State StackBlocks 			= State(stackBlocks_Enter, stackBlocks_Update, stackBlocks_Exit);
+State DropBlock 		= State(dropBlock_Enter, dropBlock_Update, dropBlock_Exit);
+State StackBlocks 		= State(stackBlocks_Enter, stackBlocks_Update, stackBlocks_Exit);
+
+State TestState_DriveStraight          = State(test_DriveStraight);
+State TestState_DriveReverse           = State(test_DriveReverse);
+State TestState_ForwardAndStop         = State(test_ForwardAndStop);
+State TestState_FindBlockInBuildArea   = State(test_FindBlockInBuildArea);
+State TestState_FindBlockInDepot       = State(test_FindBlockInDepot);
+State TestState_TapeFollow             = State(test_TapeFollow);
+
 
 FSM robotStateMachine(TravelToDepot);
 
@@ -77,11 +85,13 @@ void findBlockInDepot_Update()
 void findBlockInDepot_Exit()
 {
 	MOVEMENT_CONTROL.disable();
+	RANGEFINDERS.disable();
 }
 
 void travelFromDepot_Enter()
 {
 		TAPEFOLLOWER.enable();
+		TAPEFOLLOWER.turnBias = -1;
 		TAPEFOLLOWER.turnAround();
 }
 
@@ -100,7 +110,7 @@ void travelFromDepot_Update()
 						robotStateMachine.transitionTo(DropBlock);
 				}
 		}
-		else //second or higher block
+		else
 		{
 			robotStateMachine.transitionTo(FindBlockInBuildArea);
 		}
@@ -114,6 +124,7 @@ void travelFromDepot_Exit()
 void findBlockInBuildArea_Enter()
 {
 		RANGEFINDERS.enable();
+		OBSERVER.centreBumper.enable();
 }
 
 void findBlockInBuildArea_Update()
@@ -137,6 +148,7 @@ void findBlockInBuildArea_Update()
 void findBlockInBuildArea_Exit()
 {
 		RANGEFINDERS.disable();
+		OBSERVER.centreBumper.disable();
 }
 
 void dropBlock_Enter()
@@ -171,15 +183,91 @@ void dropBlock_Exit()
 
 void stackBlocks_Enter()
 {
-
+		RANGEFINDERS.enable();
+		OBSERVER.centreBumper.enable();
 }
 
 void stackBlocks_Update()
 {
-
+		if(blockCount == 0)
+		{
+				robotStateMachine.transitionTo(TravelToDepot);
+				return;
+		}
+		
+		if(OBSERVER.centreBumper.on())
+		{
+				DRIVE_SYSTEM.stop();
+				GRIPPER.open();
+				--blockCount;
+				
+				//back up
+				DRIVE_SYSTEM.drive(-SLOW_MOTOR_SPEED, -SLOW_MOTOR_SPEED);
+				delay(500);
+				DRIVE_SYSTEM.stop();
+				
+				LIFTER.setTargetPosition(LIFTER_LOWERED);
+				LIFTER.update();
+				while(!LIFTER.ready())
+				{
+						OBSERVER.update();
+						LIFTER.update();
+				}
+		}
+		else if(OBSERVER.gripperCentreSwitch.on())
+		{
+				GRIPPER.grip();
+				
+				LIFTER.setTargetPosition(LIFTER_RAISED);
+				LIFTER.update();
+				while(!LIFTER.ready())
+				{
+						OBSERVER.update();
+						LIFTER.update();
+				}
+		}
+		else
+		{
+				RANGEFINDERS.moveToBlockInBuildArea();
+		}
+		
 }
 
 void stackBlocks_Exit()
 {
+		RANGEFINDERS.disable();
+		OBSERVER.centreBumper.disable();
+}
 
+void test_DriveStraight()
+{ 
+    DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED, MEDIUM_MOTOR_SPEED);
+} 
+
+void test_DriveReverse()
+{
+    DRIVE_SYSTEM.drive(-MEDIUM_MOTOR_SPEED, -MEDIUM_MOTOR_SPEED);
+}
+
+void test_ForwardAndStop()
+{
+    DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED, MEDIUM_MOTOR_SPEED);
+    delay(random(250, 2000));
+    DRIVE_SYSTEM.stop();
+    delay(2000);
+}
+
+void test_FindBlockInBuildArea()
+{
+    RANGEFINDERS.moveToBlockInBuildArea();
+}
+
+void test_FindBlockInDepot()
+{
+    RANGEFINDERS.moveToBlockInDepot();
+}
+
+void test_TapeFollow()
+{
+    TAPEFOLLOWER.followTape();
 }

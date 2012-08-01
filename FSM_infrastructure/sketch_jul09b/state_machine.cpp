@@ -20,11 +20,74 @@ State TestState_Rangefinders           = State(test_Rangefinders);
 FSM robotStateMachine(TravelToDepot);
 
 char blockCount = 0;
+bool leftSide = true;
+
+void leaveBuildArea_Enter()
+{
+		OBSERVER.leftQRD.enable();
+		OBSERVER.rightQRD.enable();
+		OBSERVER.leftOutboardQRD.enable();
+		OBSERVER.rightOutboardQRD.enable();
+}
+
+void leaveBuildArea_Update()
+{
+		while(OBSERVER.leftOutboardQRD.belowThreshold() && OBSERVER.rightOutboardQRD.belowThreshold())
+		{
+				DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED);
+				OBSERVER.update();
+		}
+		
+		if(leftSide)
+		{
+				while(OBSERVER.leftOutboardQRD.belowThreshold())
+				{
+						DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, MEDIUM_MOTOR_SPEED);
+						OBSERVER.update();
+				}
+				while(OBSERVER.leftQRD.belowThreshold())
+				{
+						DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED);
+						OBSERVER.update();
+				}
+				robotStateMachine.transitionTo(TravelToDepot);
+		}
+		else
+		{
+				while(OBSERVER.rightOutboardQRD.belowThreshold())
+				{
+						DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED, SLOW_MOTOR_SPEED);
+						OBSERVER.update();
+				}
+				while(OBSERVER.rightQRD.belowThreshold())
+				{
+						DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED);
+						OBSERVER.update();
+				}
+				robotStateMachine.transitionTo(TravelToDepot);				
+		}
+}
+
+void leaveBuildArea_Exit()
+{
+		OBSERVER.leftQRD.disable();
+		OBSERVER.rightQRD.disable();
+		OBSERVER.leftOutboardQRD.disable();
+		OBSERVER.rightOutboardQRD.disable();
+}
 
 void travelToDepot_Enter()
 {
 	TAPEFOLLOWER.enable();
-	TAPEFOLLOWER.turnBias =1;
+	if(leftSide)
+	{
+		TAPEFOLLOWER.turnBias =1;	
+	}
+	else
+	{
+		TAPEFOLLOWER.turnBias = -1;
+	}
+	
     MOVEMENT_CONTROL.enable();
 }
 
@@ -49,9 +112,9 @@ void travelToDepot_Update()
 void findBlockInDepot_Enter()
 {
       MOVEMENT_CONTROL.enable();
-		GRIPPER.enable();
+      GRIPPER.enable();
 		
-		RANGEFINDERS.enable();
+      RANGEFINDERS.enable();
 		
 		//search for a block
     while(!RANGEFINDERS.searchForBlockInDepot())
@@ -65,7 +128,17 @@ void findBlockInDepot_Enter()
 
 void findBlockInDepot_Update()
 {
-		RANGEFINDERS.moveToBlockInDepot();
+		if(!RANGEFINDERS.moveToBlockInDepot())
+		{
+				MOVEMENT_CONTROL.backUp();
+				while(!RANGEFINDERS.searchForBlockInDepot())
+				{
+						LCD.clear();
+						LCD.home();
+						LCD.print("NO BLOCK FOUND");
+						delay(3000);
+				}
+		}
 		
 		GRIPPER.grip();
 		
@@ -94,7 +167,15 @@ void findBlockInDepot_Exit()
 void travelFromDepot_Enter()
 {
 		TAPEFOLLOWER.enable();
-		TAPEFOLLOWER.turnBias = -1;
+		if(leftSide)
+		{
+				TAPEFOLLOWER.turnBias = -1;
+		}
+		else
+		{
+				TAPEFOLLOWER.turnBias = 1;
+		}
+		
 		TAPEFOLLOWER.turnAround();
 }
 
@@ -114,15 +195,22 @@ void travelFromDepot_Update()
 						robotStateMachine.transitionTo(DropBlock);						
 				}
 		}
-		else
+		else if(leftSide)
 		{
 				if(OBSERVER.leftOutboardQRD.aboveThreshold())
 				{
-						MOVEMENT_CONTROL.turnLeft(90);
+						DRIVE_SYSTEM.stop();
 						robotStateMachine.transitionTo(FindBlockInBuildArea);
 				}
 		}
-
+		else
+		{
+				if(OBSERVER.rightOutboardQRD.aboveThreshold())
+				{
+						DRIVE_SYSTEM.stop();
+						robotStateMachine.transitionTo(FindBlockInBuildArea);
+				}
+		}
 }
 
 void travelFromDepot_Exit()

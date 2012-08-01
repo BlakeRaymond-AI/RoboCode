@@ -14,6 +14,7 @@
 #include <LiquidCrystal.h> //   ***** from 253 template file
 #include <Servo253.h>      //   ***** from 253 template file
 
+extern State LeaveBuildArea;
 extern State TravelToDepot;
 extern State FindBlockInDepot;
 extern State FindBlockInBuildArea;
@@ -28,6 +29,8 @@ extern State TestState_FindBlockInBuildArea;
 extern State TestState_FindBlockInDepot;
 extern State TestState_TapeFollow;
 extern State TestState_Rangefinders;
+
+void leaveBuildArea_Update();
 
 void travelToDepot_Enter();
 void travelToDepot_Update();

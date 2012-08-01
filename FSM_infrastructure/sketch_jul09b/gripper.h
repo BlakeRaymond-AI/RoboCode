@@ -27,12 +27,14 @@ class Gripper
 	{
 		OBSERVER.gripperLeftSwitch.enable();
 		OBSERVER.gripperRightSwitch.enable();
+		OBSERVER.gripperCentreSwitch.enable();
 	}
 	
 	void disable()
 	{
 		OBSERVER.gripperLeftSwitch.disable();
 		OBSERVER.gripperRightSwitch.disable();
+		OBSERVER.gripperCentreSwitch.disable();
 	}
 	
 	bool switchesClosed()

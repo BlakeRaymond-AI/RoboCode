@@ -208,19 +208,27 @@ class Rangefinders
         {
             return true;
         }
-
-        //search for the block
-        if(panRightUntilRightHigh() || panLeftUntilLeftHigh() || panLeftUntilLeftHigh() || panRightUntilRightHigh())
+        
+       //search for the block
+        if(panLeftUntilLeftHigh())
         {
-            //found it
-            DRIVE_SYSTEM.stop();
-            return true;
+            if(findLeftEdge() && findRightEdge())
+                return true;
         }
-        else
+        if(panRightUntilRightHigh() || panRightUntilRightHigh())
         {
-            //couldn't find it
-            return false;  
+            if(findLeftEdge() && findRightEdge())
+                return true;
         }
+        if(panLeftUntilLeftHigh())
+        {
+            if(findLeftEdge() && findRightEdge())
+                return true;
+        }
+        
+        //couldn't find it
+        DRIVE_SYSTEM.stop();
+        return false;
     }    
     
     void moveToBlockInBuildArea() //remember to handle the centre bumper externally

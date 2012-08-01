@@ -97,7 +97,7 @@ public:
       if(readStart())
       {
         set(knob(5));
-        LCD.setCursor(0,1);
+        LCD.setCursor(10,1);
         LCD.print("Set");
         delay(1000);
       }
@@ -126,6 +126,7 @@ public:
     LCD.clear();
     LCD.home();
     LCD.print(items.elementAt(index).displayText);
+	LCD.setCursor(0,1);
     LCD.print(items.elementAt(index).mapKnob(knob(5)));
   }  
 

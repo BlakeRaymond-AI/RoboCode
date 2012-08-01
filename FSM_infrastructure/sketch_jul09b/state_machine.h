@@ -27,6 +27,7 @@ extern State TestState_ForwardAndStop;
 extern State TestState_FindBlockInBuildArea;
 extern State TestState_FindBlockInDepot;
 extern State TestState_TapeFollow;
+extern State TestState_Rangefinders;
 
 void travelToDepot_Enter();
 void travelToDepot_Update();
@@ -58,6 +59,7 @@ void test_ForwardAndStop();
 void test_FindBlockInBuildArea();
 void test_FindBlockInDepot();
 void test_TapeFollow();
+void test_Rangefinders();
 
 extern FSM robotStateMachine;
 

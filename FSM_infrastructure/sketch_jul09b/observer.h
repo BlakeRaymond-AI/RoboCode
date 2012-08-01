@@ -19,8 +19,8 @@ class Observer
 		Observer()
 		: leftQRD(LEFT_TAPE_QRD, initialQRDThresholdL),
 		rightQRD(RIGHT_TAPE_QRD, initialQRDThresholdR),
-		leftOutboardQRD(4, initialQRDThresholdOL),
-		rightOutboardQRD(5, initialQRDThresholdOR),
+		leftOutboardQRD(2, initialQRDThresholdOL),
+		rightOutboardQRD(3, initialQRDThresholdOR),
 		gripperLeftSwitch(GRIPPER_LEFT_SWITCH),
 		gripperRightSwitch(GRIPPER_RIGHT_SWITCH),
 		gripperCentreSwitch(GRIPPER_CENTRE_SWITCH),
@@ -47,6 +47,8 @@ class Observer
 		centreBumper.read();
 		slideTopSwitch.read();
 		slideBottomSwitch.read();
+                leftRangefinder.read();
+                rightRangefinder.read();
 	}
 	
     AnalogSignal leftQRD;

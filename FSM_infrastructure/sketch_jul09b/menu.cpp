@@ -18,9 +18,12 @@ Menu::Menu()
 	items.addElement(MenuItem("MC_BckupSpd: ", &MOVEMENT_CONTROL.backUpSpeed, 0, 512));
 	items.addElement(MenuItem("MC_BckupTm: ", &MOVEMENT_CONTROL.backUpTime, 0, 2000));
 	
-	items.addElement(MenuItem("RF_GapThrsh: ", &RANGEFINDERS.gapThreshold, 0, 1023));
+	items.addElement(MenuItem("RF_BlkThrsh: ", &RANGEFINDERS.blockThreshold, 0, 1023));
 	items.addElement(MenuItem("RF_EdgThrsh: ", &RANGEFINDERS.edgeThreshold, 0, 512));
-	items.addElement(MenuItem("RF_MaxPanTime: ", &RANGEFINDERS.maxPanTime, 0, 10000));
+	items.addElement(MenuItem("RF_MaxSrchTime: ", &RANGEFINDERS.maxSearchTime, 0, 10000));
+	items.addElement(MenuItem("RF_MaxBlkPnTm: ", &RANGEFINDERS.maxEdgeFindingTime, 0, 1000));
+        items.addElement(MenuItem("RF_KPBuild: ", &RANGEFINDERS.kPBuildArea, 0, 1000));
+        items.addElement(MenuItem("RF_KPDepot: ", &RANGEFINDERS.kPDepot, 0, 1000));
 	
 	items.addElement(MenuItem("DS_LMotorC: ", &DRIVE_SYSTEM.leftMotor.correction, 0.0, 2.0));
 	items.addElement(MenuItem("DS_RMotorC: ", &DRIVE_SYSTEM.rightMotor.correction, 0.0, 2.0));

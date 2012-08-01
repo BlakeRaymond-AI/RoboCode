@@ -43,6 +43,7 @@ class StateController
       items.addElement(StateMenuItem(TestState_FindBlockInBuildArea, "Find Block:BuildArea"));
       items.addElement(StateMenuItem(TestState_FindBlockInDepot, "Find Block:Depot"));
       items.addElement(StateMenuItem(TestState_TapeFollow, "Tape Follow"));
+	  items.addElement(StateMenuItem(TestState_Rangefinders, "Rangefinders"));
     }
   
     void open()

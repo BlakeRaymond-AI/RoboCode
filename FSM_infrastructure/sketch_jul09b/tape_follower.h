@@ -104,7 +104,6 @@ int getError()
 
   void followTape()
   {
-      enable();
     getError();
     
 	correction = previousCorrection + kP * (error - previousError1) + kD * (error - 2 * previousError1 + previousError2) + kI * (error + previousError1) / 2.0;

@@ -10,8 +10,15 @@ class Rangefinders
 {
     public:
     Rangefinders()
-    : blockTracked(false),
-    cycleCount(0)
+    : cycleCount(0),
+    blockThreshold(100),
+    edgeThreshold(50),
+    maxSearchTime(2000),
+    maxEdgeFindingTime(500),
+    kPBuildArea(300),
+    kPDepot(300),
+    error(0),
+    lastError(0)
     {}
     
     void display()
@@ -22,100 +29,27 @@ class Rangefinders
         LCD.print(" R: " + String(OBSERVER.rightRangefinder.reading));
     }
     
-    bool isGap()
-    {
-        return OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.belowThreshold(gapThreshold);
-    }
-    
     void enable()
     {
         OBSERVER.leftRangefinder.enable();
         OBSERVER.rightRangefinder.enable();
     }
     
-    void reset()
-    {
-        blockTracked = false;
-    }
-    
     void disable()
     {
         OBSERVER.leftRangefinder.disable();
         OBSERVER.rightRangefinder.disable();
-        reset();
-    }
-    
-    bool panRightUntilGap()
-    {
-        DRIVE_SYSTEM.stop();
-        
-        long startTime = millis();
-        
-        while(!isGap())
-        {
-            DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
-            OBSERVER.update();
-            
-            if((millis() - startTime) > maxPanTime)
-            {
-                DRIVE_SYSTEM.stop();
-                return false;
-            }
-        }
-        
-        DRIVE_SYSTEM.stop();
-        return true;
-    }
-    
-    bool panLeftUntilGap()
-    {
-        DRIVE_SYSTEM.stop();
-        
-        long startTime = millis();
-        
-        while(!isGap())
-        {
-            DRIVE_SYSTEM.turnLeft(SLOW_MOTOR_SPEED);
-            OBSERVER.update();
-            
-            if((millis() - startTime) > maxPanTime)
-            {
-                DRIVE_SYSTEM.stop();
-                return false;
-            }
-        }
-        
-        DRIVE_SYSTEM.stop();
-        return true;
-    }
-    
-    bool panRightUntilEitherHigh()
-    {
-        DRIVE_SYSTEM.stop();
-        long startTime = millis();
-        while(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.belowThreshold(gapThreshold))
-        {
-            DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
-            OBSERVER.update();
-            if((millis() - startTime) > maxPanTime)
-            {
-                DRIVE_SYSTEM.stop();
-                return false;
-            }
-        }
-        DRIVE_SYSTEM.stop();
-        return true;
     }
     
     bool panLeftUntilEitherHigh()
     {
         DRIVE_SYSTEM.stop();
         long startTime = millis();
-        while(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.belowThreshold(gapThreshold))
+        while(OBSERVER.leftRangefinder.belowThreshold(blockThreshold) && OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
         {
             DRIVE_SYSTEM.turnLeft(SLOW_MOTOR_SPEED);
             OBSERVER.update();
-            if((millis() - startTime) > maxPanTime)
+            if((millis() - startTime) > maxSearchTime)
             {
                 DRIVE_SYSTEM.stop();
                 return false;
@@ -125,22 +59,289 @@ class Rangefinders
         return true;    
     }
     
-    void moveToBlockInDepot()
+    bool panRightUntilEitherHigh()
     {
-        while(OBSERVER.leftBumper.off() && OBSERVER.rightBumper.off() && OBSERVER.gripperCentreSwitch.off())
+        DRIVE_SYSTEM.stop();
+        long startTime = millis();
+        while(OBSERVER.leftRangefinder.belowThreshold(blockThreshold) && OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
         {
-            DRIVE_SYSTEM.drive(MEDIUM_MOTOR_SPEED, MEDIUM_MOTOR_SPEED);
-            
-            if(OBSERVER.leftRangefinder.edgeOn(edgeThreshold))
-            {
-                panRightUntilGap();
-            }
-            else if(OBSERVER.rightRangefinder.edgeOn(edgeThreshold))
-            {
-                panLeftUntilGap();
-            }
-            
+            DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
             OBSERVER.update();
+            if((millis() - startTime) > maxSearchTime)
+            {
+                DRIVE_SYSTEM.stop();
+                return false;
+            }
+        }
+        DRIVE_SYSTEM.stop();
+        return true;
+    }
+    
+    bool panLeftUntilBothHigh()
+    {
+        DRIVE_SYSTEM.stop();
+        long startTime = millis();
+        while(OBSERVER.leftRangefinder.belowThreshold(blockThreshold) || OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
+        {
+            DRIVE_SYSTEM.turnLeft(SLOW_MOTOR_SPEED);
+            OBSERVER.update();
+            if((millis() - startTime) > maxSearchTime)
+            {
+                DRIVE_SYSTEM.stop();
+                return false;
+            }
+        }
+        DRIVE_SYSTEM.stop();
+        return true;
+    }
+    
+    bool panRightUntilBothHigh()
+    {
+        DRIVE_SYSTEM.stop();
+        long startTime = millis();
+        while(OBSERVER.leftRangefinder.belowThreshold(blockThreshold) || OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
+        {
+            DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
+            OBSERVER.update();
+            if((millis() - startTime) > maxSearchTime)
+            {
+                DRIVE_SYSTEM.stop();
+                return false;
+            }
+        }
+        DRIVE_SYSTEM.stop();
+        return true;
+    }
+ 
+    bool panRightUntilRightHigh()
+    {
+        DRIVE_SYSTEM.stop();
+        long startTime = millis();
+        
+        while(OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
+        {
+            DRIVE_SYSTEM.turnRight(SLOW_MOTOR_SPEED);
+            OBSERVER.update();
+            if((millis() - startTime) > maxSearchTime)
+            {
+                DRIVE_SYSTEM.stop();
+                return false;
+            }
+        }
+        DRIVE_SYSTEM.stop();
+        return true;   
+    }
+    
+    bool panLeftUntilLeftHigh()
+    {
+        DRIVE_SYSTEM.stop();
+        long startTime = millis();
+        
+        while(OBSERVER.leftRangefinder.belowThreshold(blockThreshold))
+        {
+            DRIVE_SYSTEM.turnLeft(SLOW_MOTOR_SPEED);
+            OBSERVER.update();
+            if((millis() - startTime) > maxSearchTime)
+            {
+                DRIVE_SYSTEM.stop();
+                return false;
+            }
+        }
+        DRIVE_SYSTEM.stop();
+        return true;       
+    }
+    
+    bool findLeftEdge()
+    {
+        int startTime = millis();
+        
+        while(!OBSERVER.leftRangefinder.edgeOff(edgeThreshold))
+        {
+            if((millis() - startTime) > maxEdgeFindingTime)
+                return false;
+        }
+        
+        return true;
+    }
+
+    bool findRightEdge()
+    {
+        int startTime = millis();
+        
+        while(!OBSERVER.rightRangefinder.edgeOff(edgeThreshold))
+        {
+            if((millis() - startTime) > maxEdgeFindingTime)
+                return false;
+        }
+        
+        return true;
+    }
+    
+    bool searchForBlockInDepot()
+    {
+        //search for a block
+        //find its edges
+        //if successful, go get it
+        //otherwise keep searching
+        if(panRightUntilBothHigh())
+        {
+            if(findLeftEdge() && findRightEdge())
+                return true;
+        }
+        if(panLeftUntilBothHigh() || panLeftUntilBothHigh())
+        {
+            if(findLeftEdge() && findRightEdge())
+                return true;
+        }
+        if(panRightUntilBothHigh())
+        {
+            if(findLeftEdge() && findRightEdge())
+                return true;
+        }
+        
+        return false;
+    }
+  
+    bool searchForBlockInBuildArea()
+    {
+        if(OBSERVER.leftRangefinder.aboveThreshold(blockThreshold) || OBSERVER.rightRangefinder.aboveThreshold(blockThreshold)) //already sees it
+        {
+            return true;
+        }
+
+        //search for the block
+        if(panRightUntilRightHigh() || panLeftUntilLeftHigh() || panLeftUntilLeftHigh() || panRightUntilRightHigh())
+        {
+            //found it
+            DRIVE_SYSTEM.stop();
+            return true;
+        }
+        else
+        {
+            //couldn't find it
+            return false;  
+        }
+    }    
+    
+    void moveToBlockInBuildArea() //remember to handle the centre bumper externally
+    {   
+        LCD.clear();
+        LCD.home();
+        
+        if(OBSERVER.leftRangefinder.aboveThreshold(blockThreshold) && OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
+        {
+            error = -1;
+            LCD.print("LEFT");
+        }
+        
+        else if(OBSERVER.leftRangefinder.belowThreshold(blockThreshold) && OBSERVER.rightRangefinder.aboveThreshold(blockThreshold))
+        {
+            //turn right until both high
+            
+            error = 1;
+            LCD.print("RIGHT");
+        }
+        
+        else if(OBSERVER.leftRangefinder.belowThreshold(blockThreshold) && OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
+        {
+            if(lastError > 0)
+            {
+              error = 2;
+              LCD.print("RIGHT");
+            }
+            else if(lastError < 0)
+            {
+              error = -2;
+              LCD.print("LEFT");
+            }
+            else
+            {
+              if(panLeftUntilLeftHigh() || panRightUntilRightHigh() || panRightUntilRightHigh() || panLeftUntilLeftHigh())
+              {
+                DRIVE_SYSTEM.stop();
+              }
+              else
+              {
+                LCD.clear();
+                LCD.home();
+                LCD.print("NOT FOUND");
+                delay(250);
+              }
+            }
+        }
+        else
+        {
+           error =0;
+           LCD.print("CENTRE");
+        }
+        
+        int correction = kPBuildArea * error;
+        
+        if(correction > 0) //turn right
+        {
+          DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED - correction);
+        }
+        else
+        {
+          DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED + correction, SLOW_MOTOR_SPEED);          
+        }
+        
+        lastError = error;
+    }
+
+    bool moveToBlockInDepot()
+    {
+        OBSERVER.gripperCentreSwitch.enable();
+        if(OBSERVER.gripperCentreSwitch.on())
+        {
+            DRIVE_SYSTEM.stop();
+            LCD.clear();
+            LCD.home();
+            LCD.print("FOUND");
+            delay(100);
+            return true;
+        }
+        else if(OBSERVER.leftBumper.on() || OBSERVER.rightBumper.on())
+        {
+            DRIVE_SYSTEM.stop();
+            LCD.clear();
+            LCD.home();
+            LCD.print("HIT DEPOT");
+            delay(100);
+            return true;
+        }
+        
+        if(OBSERVER.leftRangefinder.edgeOff(edgeThreshold))
+        {
+            error = 1;
+        }
+        else if(OBSERVER.rightRangefinder.edgeOff(edgeThreshold))
+        {
+            error = -1;
+        }
+        else if(OBSERVER.leftRangefinder.aboveThreshold(blockThreshold) && OBSERVER.rightRangefinder.aboveThreshold(blockThreshold))
+        {
+            error = 0;
+        }
+        else if(OBSERVER.leftRangefinder.belowThreshold(blockThreshold) && OBSERVER.rightRangefinder.belowThreshold(blockThreshold))
+        {
+          DRIVE_SYSTEM.stop();
+          LCD.clear();
+          LCD.home();
+          LCD.print("LOST IT");
+          delay(1000);
+          searchForBlockInDepot();
+        }
+        
+        int correction = kPDepot * error;
+        
+        if(correction > 0)
+        {
+          DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED - correction);
+        }
+        else
+        {
+          DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED + correction, SLOW_MOTOR_SPEED);
         }
         
         ++cycleCount;
@@ -150,79 +351,15 @@ class Rangefinders
             cycleCount = 0;
         }
     }
-    
-    void moveToBlockInBuildArea() //remember to handle the centre bumper externally
-    {
-        if(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.belowThreshold(gapThreshold)) //doesn't see anything
-        {
-            if(blockTracked == true)
-            {
-                //move forward
-                DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED);
-            }
-            else
-            {
-                //search for the block
-                if(panRightUntilEitherHigh() || panLeftUntilEitherHigh() || panLeftUntilEitherHigh() || panRightUntilEitherHigh())
-                {
-                    //found it
-                    DRIVE_SYSTEM.stop();                
-                }
-                else
-                {
-                    //couldn't find it; lower the threshold and try again
-                    LCD.clear();
-                    LCD.home();
-                    LCD.print("ERROR");
-                    LCD.setCursor(1,0);
-                    LCD.print("BLOCK NOT FOUND");
-                    delay(1000);
-                    gapThreshold -= 25;    
-                }
-            }
-        }
         
-        else if(OBSERVER.leftRangefinder.aboveThreshold(gapThreshold) && OBSERVER.rightRangefinder.belowThreshold(gapThreshold))
-        {
-            //turn left until gap
-            
-            panLeftUntilGap();
-            
-            blockTracked = true;
-        }
-        
-        else if(OBSERVER.leftRangefinder.belowThreshold(gapThreshold) && OBSERVER.rightRangefinder.aboveThreshold(gapThreshold))
-        {
-            //turn right until gap
-            
-            panRightUntilGap();
-            
-            blockTracked = true;
-        }
-        
-        else if(OBSERVER.leftRangefinder.aboveThreshold(gapThreshold) && OBSERVER.rightRangefinder.aboveThreshold(gapThreshold))
-        {
-            LCD.clear();
-            LCD.home();
-            LCD.print("ERROR");
-            LCD.setCursor(1,0);
-            LCD.print("BOTH SENSORS HIGH");
-            delay(3000);
-        }
-        else
-        {
-            LCD.clear();
-            LCD.home();
-            LCD.print("ERROR");
-            LCD.setCursor(1,0);
-            LCD.print("BAD LOGIC");
-            delay(3000);
-        }
-    }
-    
-    int gapThreshold;
+    int blockThreshold;
     int edgeThreshold;
-    int maxPanTime;
+    int maxSearchTime;
+    int maxEdgeFindingTime;
+    int kPBuildArea;
+    int kPDepot;
+    int error;
+    int lastError;
     bool blockTracked;
     
     int cycleCount;

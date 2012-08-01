@@ -14,6 +14,7 @@ State TestState_ForwardAndStop         = State(test_ForwardAndStop);
 State TestState_FindBlockInBuildArea   = State(test_FindBlockInBuildArea);
 State TestState_FindBlockInDepot       = State(test_FindBlockInDepot);
 State TestState_TapeFollow             = State(test_TapeFollow);
+State TestState_Rangefinders           = State(test_Rangefinders);
 
 
 FSM robotStateMachine(TravelToDepot);
@@ -51,16 +52,19 @@ void findBlockInDepot_Enter()
 		GRIPPER.enable();
 		
 		RANGEFINDERS.enable();
+		
+		//search for a block
+    while(!RANGEFINDERS.searchForBlockInDepot())
+	{
+		LCD.clear();
+		LCD.home();
+		LCD.print("NO BLOCK FOUND");
+		delay(3000);
+	}
 }
 
 void findBlockInDepot_Update()
 {
-	//pan left and right, looking for a gap
-
-	if(RANGEFINDERS.panLeftUntilGap() || RANGEFINDERS.panRightUntilGap() || RANGEFINDERS.panRightUntilGap() || RANGEFINDERS.panLeftUntilGap())
-	{
-		DRIVE_SYSTEM.stop();
-		
 		RANGEFINDERS.moveToBlockInDepot();
 		
 		GRIPPER.grip();
@@ -79,7 +83,6 @@ void findBlockInDepot_Update()
 				GRIPPER.open();
 				MOVEMENT_CONTROL.backUp();
 		}
-	}
 }
 
 void findBlockInDepot_Exit()
@@ -98,22 +101,28 @@ void travelFromDepot_Enter()
 void travelFromDepot_Update()
 {
 		TAPEFOLLOWER.followTape();
-
+		
 		if(blockCount == 0)
 		{
 				if(OBSERVER.leftOutboardQRD.aboveThreshold() && OBSERVER.rightOutboardQRD.aboveThreshold())
 				{
 						DRIVE_SYSTEM.drive(SLOW_MOTOR_SPEED, SLOW_MOTOR_SPEED);
-						delay(1000);
+						delay(1500);
+						
 						DRIVE_SYSTEM.stop();
 						
-						robotStateMachine.transitionTo(DropBlock);
+						robotStateMachine.transitionTo(DropBlock);						
 				}
 		}
 		else
 		{
-			robotStateMachine.transitionTo(FindBlockInBuildArea);
+				if(OBSERVER.leftOutboardQRD.aboveThreshold())
+				{
+						MOVEMENT_CONTROL.turnLeft(90);
+						robotStateMachine.transitionTo(FindBlockInBuildArea);
+				}
 		}
+
 }
 
 void travelFromDepot_Exit()
@@ -125,6 +134,14 @@ void findBlockInBuildArea_Enter()
 {
 		RANGEFINDERS.enable();
 		OBSERVER.centreBumper.enable();
+		
+		while(!RANGEFINDERS.searchForBlockInBuildArea())
+		{
+				LCD.clear();
+				LCD.home();
+				LCD.print("NO BLOCK FOUND");
+				delay(3000);
+		}
 }
 
 void findBlockInBuildArea_Update()
@@ -138,7 +155,7 @@ void findBlockInBuildArea_Update()
 				//back up
 				DRIVE_SYSTEM.drive(-SLOW_MOTOR_SPEED, -SLOW_MOTOR_SPEED);
 				delay(MOVEMENT_CONTROL.backUpTime);
-				DRIVE_SYSTEM.stop();				
+				DRIVE_SYSTEM.stop();	
 				
 				//drop the block
 				robotStateMachine.transitionTo(DropBlock);
@@ -153,7 +170,8 @@ void findBlockInBuildArea_Exit()
 
 void dropBlock_Enter()
 {
-
+		LIFTER.enable();
+		GRIPPER.enable();
 }
 
 void dropBlock_Update()
@@ -178,7 +196,8 @@ void dropBlock_Update()
 
 void dropBlock_Exit()
 {
-
+		LIFTER.disable();
+		GRIPPER.disable();
 }
 
 void stackBlocks_Enter()
@@ -257,17 +276,35 @@ void test_ForwardAndStop()
     delay(2000);
 }
 
+bool blockFound = false;
+
 void test_FindBlockInBuildArea()
 {
+    RANGEFINDERS.enable();
     RANGEFINDERS.moveToBlockInBuildArea();
 }
 
 void test_FindBlockInDepot()
 {
-    RANGEFINDERS.moveToBlockInDepot();
+  RANGEFINDERS.enable();
+  RANGEFINDERS.moveToBlockInDepot();
 }
 
 void test_TapeFollow()
-{
+{  
+    TAPEFOLLOWER.enable();
     TAPEFOLLOWER.followTape();
+}
+
+void test_Rangefinders()
+{
+		int left = analogRead(LEFT_RANGEFINDER);
+		int right = analogRead(RIGHT_RANGEFINDER);
+		
+		LCD.clear();
+		LCD.home();
+		LCD.print("L: " + String(left));
+		LCD.setCursor(0,1);
+		LCD.print("R: " + String(right));
+		delay(100);
 }

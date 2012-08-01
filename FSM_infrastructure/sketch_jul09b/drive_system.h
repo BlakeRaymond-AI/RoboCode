@@ -34,7 +34,7 @@ public:
         lastSpeed = speed;
         speed = 0;
         
-        motor.speed(pin, -lastSpeed);
+        motor.speed(pin, speed);
     }
     
     int pin;
@@ -48,8 +48,8 @@ class DriveSystem
 public:
     DriveSystem()
     : leftMotor(LEFT_DRIVE_MOTOR, 1.0),
-    rightMotor(RIGHT_DRIVE_MOTOR, 1.0),
-    inertiaCorrection(1.0)
+    rightMotor(RIGHT_DRIVE_MOTOR, 1.4),
+    inertiaCorrection(1)
     {
         
     }
@@ -72,13 +72,13 @@ public:
     
     void stop()
     {
-        leftMotor.stopWithoutDelay();
-        rightMotor.stopWithoutDelay();
+        leftMotor.stopWithoutDelay();      
+        rightMotor.stopWithoutDelay();      
         
-        delay(inertiaCorrection * sqrt(sq(leftMotor.lastSpeed) + sq(rightMotor.lastSpeed)));
+        delay(inertiaCorrection * max(abs(leftMotor.lastSpeed), abs(rightMotor.lastSpeed)));
         
         leftMotor.stopWithoutDelay();
-        rightMotor.stopWithoutDelay();        
+        rightMotor.stopWithoutDelay();   
     }
     
     ManagedMotor leftMotor;

@@ -28,6 +28,7 @@ int gCount =0;
 
 void loop() 
 {
+  RANGEFINDERS.enable();
   OBSERVER.update();
   //LIFTER.update();
   robotStateMachine.update();
